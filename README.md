@@ -1,2 +1,2 @@
 # House-Price-Prediction
-Built a machine learning model for house price prediction using Python, implementing data preprocessing, feature engineering, and regression algorithms to improve prediction accuracy and model performance.
+Initially built as a machine learning model for house price prediction, this project is being extended into an AI-powered real estate advisor using generative AI techniques.
