@@ -58,5 +58,3 @@ This project is part of my journey to transition into Machine Learning and Gener
 
 This repository will be updated regularly as I continue learning and developing new features.
 
-
-When you finish Day 2–3, I’ll upgrade this into a **strong recruiter-level README** 🚀
