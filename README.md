@@ -77,12 +77,12 @@ Smart Insights & Recommendations
 ## Project Structure  
 
 ai-real-estate-advisor/  
-│── data/              # Dataset files  
-│── notebooks/         # Jupyter notebooks (EDA, experiments)  
-│── src/               # Core ML pipeline (training, preprocessing)  
-│── app/               # Streamlit application  
-│── docs/              # Documentation & planning  
-│── requirements.txt   # Dependencies  
+│── data/              Dataset files  
+│── notebooks/         Jupyter notebooks (EDA, experiments)  
+│── src/               Core ML pipeline (training, preprocessing)  
+│── app/               Streamlit application  
+│── docs/              Documentation & planning  
+│── requirements.txt   Dependencies  
 │── README.md  
 
 ## Example Use Case  
