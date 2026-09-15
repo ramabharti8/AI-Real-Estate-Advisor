@@ -34,3 +34,52 @@ class InsightRequest(PredictRequest):
 class InsightResponse(BaseModel):
     insight: str
     source: Literal["llm", "template"]
+
+
+class DocumentInfo(BaseModel):
+    filename: str
+    chunk_count: int
+    source_type: Literal["sample", "uploaded"]
+
+
+class DocumentListResponse(BaseModel):
+    documents: list[DocumentInfo]
+
+
+class DocumentUploadResponse(BaseModel):
+    filename: str
+    chunk_count: int
+    source_type: Literal["sample", "uploaded"]
+
+
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class DocumentChatRequest(BaseModel):
+    question: str = Field(..., min_length=1, max_length=2000)
+    history: list[ChatMessage] = Field(default_factory=list)
+
+
+class DocumentChatResponse(BaseModel):
+    answer: str
+    sources: list[str]
+    source_type: Literal["llm", "template"]
+
+
+class CityMarketSummary(BaseModel):
+    city: str
+    listings: int
+    median_price: float
+    median_price_per_sqft: float
+    top_locality: str
+
+
+class MarketSummaryResponse(BaseModel):
+    listings: int
+    median_price: float
+    median_area_sqft: float
+    cities_covered: int
+    avg_price_by_city: dict[str, float]
+    price_by_furnishing: dict[str, list[float]]

@@ -430,13 +430,16 @@ pre code{background:none; padding:0; color:inherit; font-size:inherit;}
       <a href="#tour">01 · Product Tour</a>
       <a href="#architecture">02 · Architecture</a>
       <a href="#model">03 · The Model</a>
+      <a href="#rag" class="sub">Document Q&amp;A (RAG)</a>
       <a href="#api">04 · API Reference</a>
       <a href="#a-predict" class="sub">/predict</a>
       <a href="#a-insights" class="sub">/insights</a>
+      <a href="#a-chat" class="sub">/documents/chat</a>
       <a href="#frontend">05 · Frontend</a>
       <a href="#run">06 · Running It</a>
       <a href="#real-data">07 · Training on Real Data</a>
       <a href="#deploy">08 · Deployment</a>
+      <a href="#gcp" class="sub">Google Cloud walkthrough</a>
       <a href="#troubleshooting">09 · Troubleshooting</a>
       <a href="#roadmap">10 · Roadmap</a>
     </nav>
@@ -446,10 +449,10 @@ pre code{background:none; padding:0; color:inherit; font-size:inherit;}
     <div class="cover">
       <p class="eyebrow">Project Handbook · v1.0</p>
       <h1 class="title">AI Real Estate Advisor</h1>
-      <p class="dek">A machine-learning price predictor and GenAI investment advisor for Indian residential property — from a synthetic dataset to a running API and app.</p>
+      <p class="dek">A machine-learning price predictor, GenAI investment advisor, and RAG-powered document assistant for Indian residential property — from a synthetic dataset to a running API and app.</p>
       <div class="meta-row">
         <span><b>Repo</b> ramabharti8/AI-Real-Estate-Advisor</span>
-        <span><b>Stack</b> scikit-learn · FastAPI · Streamlit</span>
+        <span><b>Stack</b> scikit-learn · FastAPI · LangChain · ChromaDB · React</span>
         <span><b>Model</b> Gradient Boosting Regressor</span>
         <span><b>Status</b> verified locally, deploy-ready</span>
       </div>
@@ -478,7 +481,7 @@ pre code{background:none; padding:0; color:inherit; font-size:inherit;}
     <section id="tour">
       <span class="sec-num">01</span>
       <h2>Product tour</h2>
-      <p>The whole experience is one Streamlit page: a form on top, results below. This is what it looks like mid-use — a 2BHK in Andheri, Mumbai, just priced.</p>
+      <p>The frontend is a React single-page app talking to the FastAPI backend over HTTP. This is what the Valuation tab looks like mid-use — a 2BHK in Andheri, Mumbai, just priced.</p>
 
       <div class="mock">
         <div class="mock-title">AI Real Estate Advisor — Prediction Form</div>
@@ -514,11 +517,11 @@ pre code{background:none; padding:0; color:inherit; font-size:inherit;}
       </div>
 
       <h3>Beyond a single prediction</h3>
-      <p>The app is organized into four tabs, not one form:</p>
+      <p>The app is organized into five tabs, not one form:</p>
       <div class="grid cols-2">
         <div class="card">
           <h4><span class="marker neutral">01</span> Valuation</h4>
-          <p>The form above — price, confidence range, price/sqft, AI insight, comparable listings, and a one-click save to the sidebar watchlist.</p>
+          <p>The form above — price, confidence range, price/sqft, AI insight, and a comparable-listings chart.</p>
         </div>
         <div class="card">
           <h4><span class="marker neutral">02</span> Market Insights</h4>
@@ -530,45 +533,56 @@ pre code{background:none; padding:0; color:inherit; font-size:inherit;}
         </div>
         <div class="card">
           <h4><span class="marker neutral">04</span> History</h4>
-          <p>Every valuation run this session, as a table, exportable to CSV from the sidebar.</p>
+          <p>Every valuation run this session, kept client-side in the browser.</p>
+        </div>
+        <div class="card">
+          <h4><span class="marker neutral">05</span> Documents</h4>
+          <p>The RAG feature (§02) — upload a property document or ask a question against the sample documents already indexed, and get a sourced answer.</p>
         </div>
       </div>
 
       <h3>Sidebar tools</h3>
-      <p>The sidebar stays out of internal plumbing (no raw config or model internals) and instead offers working tools: an <strong>INR/USD currency toggle</strong> that reformats every price on the page, a <strong>city snapshot</strong> lookup (median price and price/sqft for any covered city, pulled live from the dataset), a <strong>unit converter</strong> (sqft ↔ sq.m ↔ acre), and a <strong>watchlist</strong> for bookmarking specific valuations separately from the full session history.</p>
+      <p>The sidebar stays out of internal plumbing (no raw config or model internals) and instead offers working tools: an <strong>INR/USD currency toggle</strong> that reformats every price on the page, a <strong>city snapshot</strong> lookup (median price and price/sqft for any covered city, pulled live from the dataset via <code>/market/by-city</code>), and a <strong>unit converter</strong> (sqft ↔ sq.m ↔ acre).</p>
     </section>
 
     <!-- 02 ARCHITECTURE -->
     <section id="architecture">
       <span class="sec-num">02</span>
       <h2>Architecture</h2>
-      <p>Three independent pieces, connected by a plain HTTP call and a shared model file on disk. Nothing here needs a database — the trained model <em>is</em> the persisted state.</p>
+      <p>Four independent pieces, connected by plain HTTP calls and two files on disk: the trained model and the vector store. Neither is a traditional database — both are just persisted state the API loads at startup.</p>
 
       <div class="flow">
-        <div class="step"><div class="k">Offline</div><div class="v">generate_data.py</div></div>
-        <div class="arrow">→</div>
         <div class="step"><div class="k">Offline</div><div class="v">train.py</div></div>
         <div class="arrow">→</div>
         <div class="step"><div class="k">Artifact</div><div class="v">model.joblib</div></div>
         <div class="arrow">→</div>
         <div class="step"><div class="k">Runtime</div><div class="v">FastAPI</div></div>
         <div class="arrow">→</div>
-        <div class="step"><div class="k">Runtime</div><div class="v">Streamlit UI</div></div>
+        <div class="step"><div class="k">Runtime</div><div class="v">React UI</div></div>
+      </div>
+      <div class="flow" style="margin-top:10px;">
+        <div class="step"><div class="k">Offline</div><div class="v">ingest_documents.py</div></div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="k">Artifact</div><div class="v">ChromaDB store</div></div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="k">Runtime</div><div class="v">LangChain retrieval</div></div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="k">Runtime</div><div class="v">FastAPI /documents/*</div></div>
       </div>
 
-      <h3>Why a separate API instead of calling the model straight from Streamlit</h3>
-      <p>Streamlit could import the model directly — fewer moving parts. It talks to FastAPI over HTTP instead because that's the shape a real product takes: the model can be redeployed, scaled, or swapped for a different framework without touching the UI, and the same <code>/predict</code> endpoint can serve a future mobile app or another frontend untouched.</p>
+      <h3>Why a separate API instead of calling the model straight from the frontend</h3>
+      <p>A React app could theoretically ship a model in the browser via ONNX, but that means retraining every UI change and duplicating logic. It talks to FastAPI over HTTP instead because that's the shape a real product takes: the model (and vector store) can be redeployed, scaled, or swapped for a different framework without touching the UI, and the same endpoints can serve a future mobile app or another frontend untouched.</p>
 
       <div class="grid cols-2">
         <div class="card">
-          <h4><span class="marker neutral">API</span> Model service</h4>
-          <p>FastAPI app that loads <code>model.joblib</code> once at startup, validates requests with Pydantic, and serves predictions + LLM insights.</p>
-          <span class="path">app/main.py</span>
+          <h4><span class="marker neutral">API</span> Model &amp; RAG service</h4>
+          <p>FastAPI app that loads <code>model.joblib</code> and the ChromaDB collection once at startup, validates requests with Pydantic, and serves predictions, LLM insights, and document Q&amp;A.</p>
+          <span class="path">app/main.py · app/rag.py</span>
         </div>
         <div class="card">
           <h4><span class="marker neutral">UI</span> Presentation layer</h4>
-          <p>Streamlit form that posts to the API over plain <code>requests</code> calls and renders the response — no business logic lives here.</p>
-          <span class="path">app/streamlit_app.py</span>
+          <p>React app that calls the API over <code>fetch</code> and renders the response — no business logic lives here beyond client-side EMI math.</p>
+          <span class="path">frontend/src</span>
         </div>
       </div>
     </section>
@@ -619,13 +633,35 @@ pre code{background:none; padding:0; color:inherit; font-size:inherit;}
 }
 # 5-fold CV on each → keep the higher mean R² → fit on full train split
 # → evaluate on held-out test set → joblib.dump() the winning pipeline</code></pre>
+
+      <h3 id="rag">Document Q&amp;A (RAG)</h3>
+      <p>Separate from the price model: a retrieval-augmented generation pipeline that answers questions against a small library of property-related documents, using <strong>LangChain</strong> for chunking/orchestration and <strong>ChromaDB</strong> as the vector store.</p>
+      <div class="tbl-wrap">
+        <table>
+          <tr><th>Document</th><th>Content</th></tr>
+          <tr><td><code>locality_guide_mumbai_pune.md</code></td><td>fictional neighbourhood guide, Mumbai &amp; Pune localities</td></tr>
+          <tr><td><code>locality_guide_bangalore_hyderabad.md</code></td><td>fictional neighbourhood guide, Bangalore &amp; Hyderabad localities</td></tr>
+          <tr><td><code>sample_home_sale_agreement_template.md</code></td><td>generic sale-agreement template (no real names)</td></tr>
+          <tr><td><code>buyers_legal_checklist_india.md</code></td><td>stamp duty, RERA registration, title verification, home-loan documents</td></tr>
+          <tr><td><code>amenities_society_rules_brochure.md</code></td><td>generic society rules / amenities brochure</td></tr>
+        </table>
+      </div>
+      <p>Pipeline: <code>src/ingest_documents.py</code> chunks each file (<code>RecursiveCharacterTextSplitter</code>, 800 chars / 120 overlap), embeds the chunks, and persists them to <code>app/vectorstore/chroma/</code>. At query time, <code>/documents/chat</code> embeds the question, retrieves the closest chunks, and either hands them to an LLM (if <code>OPENAI_API_KEY</code> is set) or returns the top chunk verbatim with a clear "retrieved excerpt, not synthesized" label — the same graceful-degradation philosophy as <code>/insights</code>.</p>
+      <div class="callout tip">
+        <span class="tag">Works with zero API keys</span>
+        <p>Embeddings default to a free, local model (<code>sentence-transformers/all-MiniLM-L6-v2</code> via <code>langchain-huggingface</code>) when no OpenAI key is set — downloaded once from Hugging Face, then fully offline. Set <code>OPENAI_API_KEY</code> to switch to OpenAI embeddings and get LLM-synthesized answers instead of raw retrieved text.</p>
+      </div>
+      <div class="callout risk">
+        <span class="tag">Fictional documents, not legal advice</span>
+        <p>All five sample documents are invented for this project — no real addresses, people, or legally binding content. The legal checklist in particular should not be treated as authoritative guidance.</p>
+      </div>
     </section>
 
     <!-- 04 API -->
     <section id="api">
       <span class="sec-num">04</span>
       <h2>API reference</h2>
-      <p>Two POST endpoints, both JSON in, JSON out. Interactive docs are auto-generated by FastAPI at <code>/docs</code> once the server is running.</p>
+      <p>All endpoints are JSON in, JSON out (file upload aside). Interactive docs are auto-generated by FastAPI at <code>/docs</code> once the server is running.</p>
 
       <h3 id="a-predict">Predict a price</h3>
       <div class="endpoint"><span class="method">POST</span> /predict</div>
@@ -657,7 +693,41 @@ pre code{background:none; padding:0; color:inherit; font-size:inherit;}
   "source": "template"   // or "llm" when OPENAI_API_KEY is configured
 }</code></pre>
 
+      <h3 id="a-chat">Ask a question against indexed documents</h3>
+      <div class="endpoint"><span class="method">POST</span> /documents/chat</div>
+      <p class="filebar">Request</p>
+      <pre><code>{
+  "question": "What documents does a buyer need for a home loan?",
+  "history": []
+}</code></pre>
+      <p class="filebar">Response</p>
+      <pre><code>{
+  "answer": "...",
+  "sources": ["buyers_legal_checklist_india.md"],
+  "source_type": "llm"   // or "template" without an API key
+}</code></pre>
+
+      <h3>Upload and list documents</h3>
+      <div class="endpoint"><span class="method">POST</span> /documents/upload</div>
+      <p>Multipart form upload, field name <code>file</code> — accepts PDF or plain text/markdown. Chunks and indexes it into the same ChromaDB collection immediately.</p>
+      <pre><code>{"filename": "my_document.pdf", "chunk_count": 4, "source_type": "uploaded"}</code></pre>
+      <div class="endpoint"><span class="method get">GET</span> /documents</div>
+      <p>Lists every indexed document (sample and uploaded) with its chunk count.</p>
+
+      <h3>Market data endpoints</h3>
+      <p>Power the sidebar and Market Insights tab — computed live from <code>data/housing_data.csv</code> with pandas, not hardcoded.</p>
       <div class="grid cols-2">
+        <div class="card">
+          <h4><span class="method get">GET</span> /market/summary</h4>
+          <p>Dataset-wide stats: listing count, median price/area, cities covered, average price by city, price by furnishing.</p>
+        </div>
+        <div class="card">
+          <h4><span class="method get">GET</span> /market/by-city/&#123;city&#125;</h4>
+          <p>Per-city snapshot: median price, median price/sqft, top-priced locality.</p>
+        </div>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:14px;">
         <div class="card">
           <h4><span class="method get">GET</span> /health</h4>
           <p>Returns <code>{"status":"ok","model_ready":true}</code> — checks the model artifact exists without loading it.</p>
@@ -673,10 +743,11 @@ pre code{background:none; padding:0; color:inherit; font-size:inherit;}
     <section id="frontend">
       <span class="sec-num">05</span>
       <h2>Frontend</h2>
-      <p>Streamlit renders the form, calls the API with <code>requests</code>, and draws the comparison chart with matplotlib — nothing is computed client-side. It reads the API's address from <code>API_BASE_URL</code>, defaulting to <code>http://localhost:8000</code>, so pointing the UI at a deployed backend is one environment variable.</p>
+      <p>A Vite + React + TypeScript single-page app in <code>frontend/</code>. It calls the API with <code>fetch</code> through a typed client (<code>frontend/src/api/client.ts</code>) and reads the API's address from the build-time env var <code>VITE_API_BASE_URL</code>, defaulting to <code>http://localhost:8000</code>. Financing-tab EMI math and unit conversion run client-side; everything else — predictions, insights, document Q&amp;A, market stats — comes from the API.</p>
+      <p>Styling is a single global stylesheet (<code>frontend/src/index.css</code>) implementing the same professional, icon-free theme throughout — plain typography and text labels, no emoji or pictogram icons, light/dark support via <code>prefers-color-scheme</code>.</p>
       <div class="callout tip">
         <span class="tag">Why this matters locally</span>
-        <p>If something else on your machine already occupies port 8000 (a container runtime, another API), just run the backend on a different port and export <code>API_BASE_URL</code> before starting Streamlit — no code changes needed.</p>
+        <p>If something else on your machine already occupies port 8000 (a container runtime, another API), run the backend on a different port and set <code>VITE_API_BASE_URL</code> in <code>frontend/.env</code> before starting the dev server — no code changes needed. Same idea if port 5173 (Vite's default) is already taken by another project: pass <code>--port &lt;n&gt;</code> to <code>npm run dev</code>.</p>
       </div>
     </section>
 
@@ -684,39 +755,38 @@ pre code{background:none; padding:0; color:inherit; font-size:inherit;}
     <section id="run">
       <span class="sec-num">06</span>
       <h2>Running it locally — step by step</h2>
-      <p>Eight steps, in order. Each one ends with something you can check before moving to the next — don't skip the checks, they're where problems actually surface.</p>
+      <p>Ten steps, in order. Each one ends with something you can check before moving to the next — don't skip the checks, they're where problems actually surface.</p>
 
       <h3 id="s1">Step 1 · Prerequisites</h3>
-      <p>You need Python 3.10–3.13 and Git. Confirm before anything else:</p>
+      <p>You need Python 3.10–3.13, Node.js 18+, and Git. Confirm before anything else:</p>
       <pre><code>python --version     # should print 3.10.x – 3.13.x
+node --version       # should print v18.x or higher
 git --version</code></pre>
 
       <h3 id="s2">Step 2 · Get the code</h3>
       <pre><code>git clone https://github.com/ramabharti8/AI-Real-Estate-Advisor.git
 cd AI-Real-Estate-Advisor</code></pre>
 
-      <h3 id="s3">Step 3 · Create a virtual environment</h3>
-      <p>Keeps this project's packages separate from everything else on your machine.</p>
+      <h3 id="s3">Step 3 · Create a virtual environment and install backend dependencies</h3>
       <pre><code># Windows (Git Bash)
 python -m venv venv
 source venv/Scripts/activate
+pip install -r requirements.txt
 
 # macOS / Linux
 python3 -m venv venv
-source venv/bin/activate</code></pre>
-      <p><span class="check">Verify</span> your terminal prompt should now start with <code>(venv)</code>.</p>
+source venv/bin/activate
+pip install -r requirements.txt</code></pre>
+      <p><span class="check">Verify</span> your terminal prompt starts with <code>(venv)</code> and <code>pip install</code> ends with no red error text. Expect 3–8 minutes on a fresh machine — the RAG stack (<code>torch</code>, <code>sentence-transformers</code>) is a large download.</p>
+      <div class="callout warn">
+        <span class="tag">Windows: torch import fails after install</span>
+        <p>If <code>sentence-transformers</code> pulls a <code>torch</code> version that fails to import with a <code>shm.dll</code> / <code>WinError 126</code> error, reinstall the CPU-only build explicitly: <code>pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu</code>. See <a href="#troubleshooting">§09 Q9</a>.</p>
+      </div>
 
-      <h3 id="s4">Step 4 · Install dependencies</h3>
-      <pre><code>pip install -r requirements.txt</code></pre>
-      <p><span class="check">Verify</span> no red error text at the end. Takes 1–3 minutes on a fresh machine.</p>
-
-      <h3 id="s5">Step 5 · Generate the dataset</h3>
-      <pre><code>python src/generate_data.py</code></pre>
-      <p><span class="check">Verify</span> <code>data/housing_data.csv</code> now exists with ~4,000 rows.</p>
-
-      <h3 id="s6">Step 6 · Train the model</h3>
-      <pre><code>python src/train.py</code></pre>
-      <p>This cross-validates two models and keeps the better one. Expect console output ending with something like:</p>
+      <h3 id="s4">Step 4 · Generate the dataset and train the model</h3>
+      <pre><code>python src/generate_data.py
+python src/train.py</code></pre>
+      <p>Expect console output ending with something like:</p>
       <pre><code>Selected model: gradient_boosting
 Test MAE:  1,468,817
 Test RMSE: 2,064,111
@@ -724,37 +794,53 @@ Test R2:   0.9511
 
 Saved model -> app/model/model.joblib
 Saved metrics -> app/model/metrics.json</code></pre>
-      <p><span class="check">Verify</span> <code>app/model/model.joblib</code> and <code>app/model/metrics.json</code> now exist. Without this file, the API responds with a 503.</p>
+      <p><span class="check">Verify</span> <code>data/housing_data.csv</code> and <code>app/model/model.joblib</code> now exist. Without the model file, the API responds with a 503 on <code>/predict</code>.</p>
 
-      <h3 id="s7">Step 7 · Start the backend API</h3>
+      <h3 id="s5">Step 5 · Ingest the RAG documents</h3>
+      <pre><code>python src/ingest_documents.py</code></pre>
+      <p>Chunks and embeds the five sample documents in <code>data/documents/</code> into a local ChromaDB store at <code>app/vectorstore/chroma/</code>. On first run this also downloads the local embedding model (~90 MB, one-time, offline afterward).</p>
+      <p><span class="check">Verify</span> the script prints something like <code>Done. 5 document(s), 22 chunk(s) indexed.</code> — re-run any time after changing files in <code>data/documents/</code>; it's idempotent.</p>
+
+      <h3 id="s6">Step 6 · Start the backend API</h3>
       <pre><code>uvicorn app.main:app --reload --port 8000</code></pre>
       <p>Leave this terminal running. <span class="check">Verify</span> open <a href="http://localhost:8000/health">localhost:8000/health</a> in a browser — it should show <code>{"status":"ok","model_ready":true}</code>. Also try <a href="http://localhost:8000/docs">localhost:8000/docs</a> for the interactive API playground.</p>
       <div class="callout warn">
         <span class="tag">Port already in use?</span>
-        <p>Something else on your machine (Docker, another app) may already hold port 8000. Run on a different port instead: <code>uvicorn app.main:app --reload --port 8010</code> — then set <code>API_BASE_URL</code> in Step 8 to match.</p>
+        <p>Something else on your machine (Docker, another app) may already hold port 8000. Run on a different port instead: <code>uvicorn app.main:app --reload --port 8010</code> — then set <code>VITE_API_BASE_URL</code> in Step 8 to match.</p>
       </div>
 
-      <h3 id="s8">Step 8 · Start the frontend (open a <em>second</em> terminal)</h3>
-      <pre><code># activate the venv again in this new terminal first
-source venv/Scripts/activate
-export API_BASE_URL=http://localhost:8000   # skip if you used the default port
-streamlit run app/streamlit_app.py</code></pre>
-      <p><span class="check">Verify</span> a browser tab opens at <code>localhost:8501</code> with the form. Fill it in, click <strong>Predict Price</strong> — you should see a price, an insight paragraph, and a comparison chart within a couple of seconds.</p>
+      <h3 id="s7">Step 7 · Install frontend dependencies (open a <em>second</em> terminal)</h3>
+      <pre><code>cd frontend
+npm install</code></pre>
+      <p><span class="check">Verify</span> no error at the end and a <code>node_modules/</code> folder appears. Takes 1–2 minutes.</p>
 
-      <h3>Optional · Turn on real AI insights</h3>
-      <p>Without this, <code>/insights</code> still works — it just uses a template instead of an LLM.</p>
+      <h3 id="s8">Step 8 · Start the frontend</h3>
+      <pre><code>npm run dev
+# if the API isn't on the default port:
+# create frontend/.env with VITE_API_BASE_URL=http://localhost:8010</code></pre>
+      <p><span class="check">Verify</span> a browser tab opens at <code>localhost:5173</code> with the Valuation form. Fill it in, click <strong>Run Valuation</strong> — you should see a price, confidence range, and an insight paragraph. Check the <strong>Documents</strong> tab too and ask a question — you should get an answer with sources.</p>
+      <div class="callout warn">
+        <span class="tag">Port 5173 already in use?</span>
+        <p>Common if another Vite project is running. Use a different port: <code>npm run dev -- --port 5180</code>.</p>
+      </div>
+
+      <h3>Optional · Turn on real AI features</h3>
+      <p>Without this, <code>/insights</code> and <code>/documents/chat</code> still work — they use a template and raw retrieval instead of an LLM.</p>
       <pre><code>cp .env.example .env
 # open .env and set:
 OPENAI_API_KEY=sk-...</code></pre>
-      <p>Restart the API (Step 7) after adding the key. The insight response's <code>"source"</code> field will switch from <code>"template"</code> to <code>"llm"</code>.</p>
+      <p>Restart the API (Step 6) after adding the key. <code>/insights</code>'s <code>"source"</code> and <code>/documents/chat</code>'s <code>"source_type"</code> will switch from <code>"template"</code> to <code>"llm"</code>.</p>
 
-      <h3>Optional · Run the test suite</h3>
+      <h3>Optional · Run the test suite and confirm the frontend build</h3>
       <pre><code>pytest -q
-# 8 passed — covers the training artifacts and both API endpoints</code></pre>
+# 11 passed — training artifacts, /predict, /insights, and the RAG endpoints
+
+cd frontend && npm run build
+# produces frontend/dist/ -- what a static host would serve</code></pre>
 
       <div class="callout tip">
         <span class="tag">Daily workflow, once set up</span>
-        <p>You only repeat Steps 5–6 when the data or model changes. Day to day it's just: activate venv → Step 7 in one terminal → Step 8 in another.</p>
+        <p>You only repeat Steps 4–5 when the data, model, or documents change. Day to day it's just: activate venv → Step 6 in one terminal → Step 8 in another.</p>
       </div>
     </section>
 
@@ -809,7 +895,7 @@ kaggle datasets download -d amitabhajoy/bengaluru-house-price-data -p data/raw -
 
       <h3 id="rd4">Step 4 · Retrain</h3>
       <pre><code>python src/train.py</code></pre>
-      <p>Same command as §06 Step 6 — it always trains on whatever is currently at <code>data/housing_data.csv</code>.</p>
+      <p>Same command as §06 Step 4 — it always trains on whatever is currently at <code>data/housing_data.csv</code>.</p>
 
       <h3 id="rd5">Step 5 · Compare against the synthetic baseline</h3>
       <p>Read the new <code>app/model/metrics.json</code> against the synthetic numbers from §03. Expect the real-data R² to be <strong>noticeably lower</strong> — commonly 0.6–0.8 instead of 0.95. That drop is the honest answer to "does this work on real data": real prices depend on factors this feature set doesn't capture (exact floor, view, builder reputation, negotiation), and three of the nine features are imputed noise rather than signal. A lower, real R² is more trustworthy than a high, synthetic one.</p>
@@ -822,7 +908,7 @@ kaggle datasets download -d amitabhajoy/bengaluru-house-price-data -p data/raw -
   "parking": 1, "amenities_score": 6.0
 }'
 # compare against that row's real price (39.07 Lakh in the raw file)</code></pre>
-      <p>Restart the API (§06 Step 7) after retraining so it picks up the new model file — it's loaded once at startup, not per request.</p>
+      <p>Restart the API (§06 Step 6) after retraining so it picks up the new model file — it's loaded once at startup, not per request.</p>
 
       <div class="callout risk">
         <span class="tag">Before you trust the numbers</span>
@@ -834,7 +920,7 @@ kaggle datasets download -d amitabhajoy/bengaluru-house-price-data -p data/raw -
     <section id="deploy">
       <span class="sec-num">08</span>
       <h2>Deployment</h2>
-      <p>Backend and frontend deploy as two separate services — the split from <a href="#architecture">§02</a> pays off here directly.</p>
+      <p>Backend and frontend deploy as two separate services — the split from <a href="#architecture">§02</a> pays off here directly. Two paths are documented: a fast managed-PaaS route, and a fuller Google Cloud Platform walkthrough. <strong>Neither has actually been deployed yet</strong> — this is a reference for when you're ready, not a record of something already live.</p>
 
       <div class="grid cols-2">
         <div class="card">
@@ -842,15 +928,76 @@ kaggle datasets download -d amitabhajoy/bengaluru-house-price-data -p data/raw -
           <p><code>render.yaml</code>, <code>Procfile</code> and <code>runtime.txt</code> are already in the repo. Render builds from the Procfile's <code>uvicorn app.main:app</code> command; the training step runs at build time so the model artifact is always fresh.</p>
         </div>
         <div class="card">
-          <h4><span class="marker neutral">02</span> UI → Streamlit Community Cloud</h4>
-          <p>Point it at <code>app/streamlit_app.py</code>, set <code>API_BASE_URL</code> to your deployed API's URL in the app's secrets, and it just works.</p>
+          <h4><span class="marker neutral">02</span> UI → Vercel / Netlify</h4>
+          <p>The React app in <code>frontend/</code> builds to static files (<code>npm run build</code> → <code>frontend/dist/</code>) — drop that into any static host. Set <code>VITE_API_BASE_URL</code> at build time to your deployed API's URL.</p>
         </div>
       </div>
-      <p>Full step-by-step, including environment variables and health-check paths, is in <code>docs/DEPLOYMENT.md</code>.</p>
+      <p>Full step-by-step for this route, including environment variables and health-check paths, is in <code>docs/DEPLOYMENT.md</code>.</p>
+
+      <h3 id="gcp">Deploying to Google Cloud Platform — step by step</h3>
+      <p>A more hands-on path: the API runs as a container on <strong>Cloud Run</strong> (serverless, scales to zero), the React build is served as static files, and secrets live in <strong>Secret Manager</strong> rather than in code. This section explains exactly how — follow it when you're ready to actually deploy.</p>
+
+      <h4>Step 1 · Prerequisites</h4>
+      <pre><code># Install the gcloud CLI, then:
+gcloud auth login
+gcloud projects create ai-real-estate-advisor --set-as-default
+gcloud config set project ai-real-estate-advisor
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com \
+  secretmanager.googleapis.com cloudbuild.googleapis.com</code></pre>
+      <p>Billing must be enabled on the project — Cloud Run has a free tier, but the project still needs a billing account attached.</p>
+
+      <h4>Step 2 · Store the OpenAI key in Secret Manager</h4>
+      <pre><code>printf "%s" "sk-your-key-here" | gcloud secrets create OPENAI_API_KEY --data-file=-</code></pre>
+      <p>Nothing sensitive ever touches the repo or the container image this way — Cloud Run injects it as an environment variable at runtime.</p>
+
+      <h4>Step 3 · Containerize the backend</h4>
+      <p>Add a <code>Dockerfile</code> at the project root:</p>
+      <pre><code>FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+RUN python src/generate_data.py && python src/train.py && python src/ingest_documents.py
+CMD exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}</code></pre>
+      <p>Running the training and ingestion scripts at build time means the image is self-contained — no separate step to populate the model or vector store after deploy.</p>
+
+      <h4>Step 4 · Build and push the image</h4>
+      <pre><code>gcloud artifacts repositories create app-images --repository-format=docker --location=asia-south1
+gcloud builds submit --tag asia-south1-docker.pkg.dev/ai-real-estate-advisor/app-images/api:latest</code></pre>
+
+      <h4>Step 5 · Deploy the backend to Cloud Run</h4>
+      <pre><code>gcloud run deploy real-estate-api \
+  --image asia-south1-docker.pkg.dev/ai-real-estate-advisor/app-images/api:latest \
+  --region asia-south1 \
+  --allow-unauthenticated \
+  --memory 1Gi \
+  --set-secrets OPENAI_API_KEY=OPENAI_API_KEY:latest</code></pre>
+      <p><span class="check">Verify</span> the command prints a service URL — open <code>&lt;url&gt;/health</code> in a browser to confirm it responds.</p>
+      <div class="callout warn">
+        <span class="tag">The vector store is ephemeral here</span>
+        <p>Cloud Run containers are stateless between deploys — anything written to disk at runtime (e.g. a document uploaded through <code>/documents/upload</code> after launch) disappears on the next cold start or redeploy. The <em>sample</em> documents survive because they're baked into the image at build time (Step 3). For uploads to persist permanently, mount a <a href="https://cloud.google.com/run/docs/configuring/services/cloud-storage-volume-mounts" target="_blank" rel="noopener">Cloud Storage volume</a> at the ChromaDB persist path, or swap ChromaDB for a managed vector store.</p>
+      </div>
+
+      <h4>Step 6 · Build and host the React frontend</h4>
+      <pre><code>cd frontend
+VITE_API_BASE_URL=https://real-estate-api-xxxxx.run.app npm run build
+gcloud storage buckets create gs://real-estate-advisor-ui --location=asia-south1
+gcloud storage buckets update gs://real-estate-advisor-ui --web-main-page-suffix=index.html
+gcloud storage cp -r dist/* gs://real-estate-advisor-ui</code></pre>
+      <p>Point that bucket behind <a href="https://cloud.google.com/cdn" target="_blank" rel="noopener">Cloud CDN</a> (or use Firebase Hosting instead of raw Cloud Storage — same idea, less manual CDN wiring) for a proper HTTPS URL and caching.</p>
+
+      <h4>Step 7 · Allow the frontend to call the backend</h4>
+      <p>Add the frontend's origin to <code>allow_origins</code> in the CORS middleware in <code>app/main.py</code>, rebuild, and redeploy (Steps 3–5).</p>
+
+      <h4>Step 8 · Optional — custom domain and continuous deployment</h4>
+      <ul>
+        <li><strong>Custom domain:</strong> <code>gcloud run domain-mappings create --service real-estate-api --domain api.yourdomain.com</code>, plus a CNAME/A record with your DNS provider.</li>
+        <li><strong>CI/CD:</strong> a Cloud Build trigger on pushes to <code>main</code> re-runs Steps 4–5 automatically — set one up from the Cloud Build console pointed at the GitHub repo, using the same Dockerfile.</li>
+      </ul>
 
       <div class="callout risk">
-        <span class="tag">Before you deploy</span>
-        <p>Set <code>OPENAI_API_KEY</code> as a secret on the hosting platform, never in the repo. <code>.env</code> is already gitignored — keep it that way.</p>
+        <span class="tag">Before you deploy — either path</span>
+        <p>Set <code>OPENAI_API_KEY</code> as a secret on the hosting platform, never in the repo. <code>.env</code> is already gitignored — keep it that way. This walkthrough is intentionally not executed against a live GCP project as part of this handbook — running it will incur real cloud costs, however small.</p>
       </div>
     </section>
 
@@ -865,9 +1012,9 @@ kaggle datasets download -d amitabhajoy/bengaluru-house-price-data -p data/raw -
         <pre class="err">Unable to copy 'C:\...\venv\scripts\nt\venvlauncher.exe' to
 'E:\AI-Real-Estate-Advisor\venv\Scripts\python.exe'</pre>
         <div class="a">
-          <p><strong>Cause:</strong> a <code>venv</code> folder already exists at that path, and its <code>python.exe</code> is locked — usually because a server (uvicorn, streamlit) started from that same environment is still running and holding the file open.</p>
+          <p><strong>Cause:</strong> a <code>venv</code> folder already exists at that path, and its <code>python.exe</code> is locked — usually because a server (uvicorn, or a background pip install) started from that same environment is still running and holding the file open.</p>
           <p><strong>Fix:</strong> stop whatever is using that interpreter, then delete and recreate the folder.</p>
-          <pre><code>Get-Process python,streamlit -ErrorAction SilentlyContinue | Stop-Process -Force
+          <pre><code>Get-Process python -ErrorAction SilentlyContinue | Stop-Process -Force
 Remove-Item -Recurse -Force venv
 python -m venv venv</code></pre>
         </div>
@@ -924,9 +1071,8 @@ way forbidden by its access permissions</pre>
           <p><strong>Fix:</strong> run the API on a free port instead, and point the frontend at the same port.</p>
           <pre><code>uvicorn app.main:app --reload --port 8010
 
-# in the terminal running Streamlit:
-$env:API_BASE_URL = "http://localhost:8010"   # PowerShell
-export API_BASE_URL=http://localhost:8010     # Git Bash</code></pre>
+# create frontend/.env with:
+VITE_API_BASE_URL=http://localhost:8010</code></pre>
           <p>To find what's actually holding a port before changing anything: <code>netstat -ano | findstr :8000</code>, then <code>tasklist /FI "PID eq &lt;pid&gt;"</code> to identify it.</p>
         </div>
       </div>
@@ -950,10 +1096,32 @@ export API_BASE_URL=http://localhost:8010     # Git Bash</code></pre>
       </div>
 
       <div class="qa">
-        <div class="q"><span class="marker">Q8</span> The Streamlit page stays blank / shows "Running…" for a long time on first load</div>
+        <div class="q"><span class="marker">Q8</span> <code>npm run dev</code> starts, but the app at localhost:5173 is a different project entirely</div>
         <div class="a">
-          <p><strong>Cause:</strong> not an error — the first run compiles and caches the page, and matplotlib's font cache builds on first import. Subsequent loads are fast.</p>
-          <p><strong>Fix:</strong> wait roughly ten seconds on the very first launch after a fresh install. If it never resolves, check the terminal running Streamlit for a Python traceback.</p>
+          <p><strong>Cause:</strong> another Vite project on your machine is already using port 5173 (Vite's default) and answered first — this project's dev server either failed to bind, or is running on a different port than you assumed.</p>
+          <p><strong>Fix:</strong> check the terminal output for the actual port Vite chose, or force one explicitly:</p>
+          <pre><code>npm run dev -- --port 5180</code></pre>
+        </div>
+      </div>
+
+      <div class="qa">
+        <div class="q"><span class="marker">Q9</span> After <code>pip install -r requirements.txt</code>, importing the app fails with a <code>shm.dll</code> / <code>WinError 126</code> error from <code>torch</code></div>
+        <pre class="err">OSError: [WinError 126] The specified module could not be found.
+Error loading "...\torch\lib\shm.dll" or one of its dependencies.</pre>
+        <div class="a">
+          <p><strong>Cause:</strong> <code>sentence-transformers</code> (used for the free local embedding fallback) pulls in a default <code>torch</code> build via PyPI that doesn't import cleanly on some Windows setups.</p>
+          <p><strong>Fix:</strong> reinstall the CPU-only build explicitly from PyTorch's own index:</p>
+          <pre><code>pip uninstall -y torch
+pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu</code></pre>
+          <p>This download is large (a few hundred MB) — expect several minutes even on a fast connection.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <div class="q"><span class="marker">Q10</span> <code>/documents/chat</code> works, but every answer is a raw excerpt instead of a written answer</div>
+        <div class="a">
+          <p><strong>Cause:</strong> not a bug — this is the documented no-API-key fallback path (§03 RAG). Without <code>OPENAI_API_KEY</code>, the endpoint returns the most relevant retrieved chunk verbatim rather than calling an LLM to synthesize a response, and labels it as such (<code>"source_type": "template"</code>).</p>
+          <p><strong>Fix:</strong> set <code>OPENAI_API_KEY</code> (§06, optional step) and restart the API to get synthesized answers instead.</p>
         </div>
       </div>
     </section>
@@ -963,9 +1131,9 @@ export API_BASE_URL=http://localhost:8010     # Git Bash</code></pre>
       <span class="sec-num">10</span>
       <h2>Where this goes next</h2>
       <div class="grid cols-3">
-        <div class="card"><h4>Real listings data</h4><p>Swap the synthetic CSV for scraped or licensed transaction data — same column contract, no code changes.</p></div>
-        <div class="card"><h4>Chat-based follow-ups</h4><p>Let the insight endpoint hold a conversation — "what if I add a parking spot?" — instead of one-shot text.</p></div>
-        <div class="card"><h4>Confidence intervals</h4><p>Quantile regression or a prediction-interval wrapper so the UI shows a price range, not a single number.</p></div>
+        <div class="card"><h4>Real listings data</h4><p>Swap the synthetic CSV for scraped or licensed transaction data (§07) as the default, not just an optional retrain.</p></div>
+        <div class="card"><h4>Multi-turn document chat</h4><p><code>/documents/chat</code> already accepts a <code>history</code> array — wire the frontend to send prior turns for real follow-up questions instead of one-shot Q&amp;A.</p></div>
+        <div class="card"><h4>Confidence intervals</h4><p>Quantile regression or a prediction-interval wrapper so the UI shows a statistically grounded price range, not a flat ± MAE band.</p></div>
       </div>
     </section>
 

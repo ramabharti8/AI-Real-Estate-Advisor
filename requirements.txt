@@ -6,9 +6,25 @@ matplotlib==3.9.2
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
 pydantic==2.9.2
-streamlit==1.38.0
-requests==2.32.3
-openai==1.51.0
+requests==2.34.2
+openai==3.14.0
 python-dotenv==1.0.1
 pytest==8.3.3
 httpx==0.27.2
+
+# --- Document Q&A / RAG stack ---
+langchain==1.4.0
+langchain-openai==1.6.2
+langchain-community==0.4.2
+langchain-text-splitters==1.1.2
+langchain-chroma==1.1.0
+langchain-huggingface==1.2.2
+chromadb==1.5.9
+pypdf==6.18.1
+python-multipart==0.0.32
+
+# sentence-transformers pulls in torch; on Windows without a GPU, install the
+# CPU-only wheel explicitly first to avoid a broken/oversized CUDA build:
+#   pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+# then: pip install -r requirements.txt
+sentence-transformers==6.0.1
