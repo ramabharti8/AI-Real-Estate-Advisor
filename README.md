@@ -10,7 +10,7 @@ Estimating the fair price of a property is challenging due to multiple influenci
 
 ```mermaid
 flowchart LR
-    A[Streamlit UI] -- property form --> B[FastAPI /predict]
+    A[React UI] -- property form --> B[FastAPI /predict]
     B -- loads --> C[(model.joblib\nsklearn pipeline)]
     B -- price --> A
     A -- prediction + inputs --> D[FastAPI /insights]
@@ -18,6 +18,11 @@ flowchart LR
     D -- no key --> F[Template explanation]
     E --> A
     F --> A
+    A -- question --> G[FastAPI /documents/chat]
+    G -- retrieves --> H[(ChromaDB\nvector store)]
+    G -- has OPENAI_API_KEY? --> E
+    G -- no key --> I[Retrieved excerpt]
+    I --> A
 ```
 
 ## Features (Implemented)
@@ -108,7 +113,7 @@ AI Insight (template mode, no API key): "This 2BHK in Kothrud, Pune is estimated
 Trained on a synthetic 4,000-row dataset spanning 7 Indian cities with engineered correlations between area, bedrooms, amenities, age and price. Gradient Boosting was selected over Random Forest via 5-fold CV (R² ≈ 0.95 on held-out test data). Since the data is synthetic, absolute prices are illustrative, not real market figures — see `docs/DEPLOYMENT.md` for how to swap in a real dataset.
 
 ## Deployment
-See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for deploying the backend to Render/Railway and the frontend to Streamlit Community Cloud.
+See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for deploying the backend to Render/Railway and the frontend to Vercel/Netlify, plus a full Google Cloud Platform walkthrough in [`docs/handbook.html`](docs/handbook.html).
 
 ## Screenshots
 _(placeholder — add UI screenshots here once deployed, e.g. `docs/screenshots/form.png`, `docs/screenshots/prediction.png`)_
