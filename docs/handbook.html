@@ -1,0 +1,977 @@
+<title>Real Estate Advisor Handbook</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F5F3EE;
+  --paper-raised:#FFFFFF;
+  --ink:#1C2027;
+  --ink-dim:#5B5F68;
+  --line:#DCD7C9;
+  --line-soft:#E9E5DA;
+  --accent:#3A6B5C;
+  --accent-ink:#EAF3EF;
+  --accent-warm:#B5652D;
+  --accent-warm-ink:#FBEDE1;
+  --danger:#A3423A;
+  --danger-ink:#FBEBE9;
+  --code-bg:#1C2027;
+  --code-fg:#E8E6DF;
+  --shadow: 0 1px 2px rgba(28,32,39,.04), 0 8px 24px -12px rgba(28,32,39,.12);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#14181D;
+    --paper-raised:#1B2027;
+    --ink:#E8E6DF;
+    --ink-dim:#9CA0A8;
+    --line:#2A2F36;
+    --line-soft:#232830;
+    --accent:#68B79A;
+    --accent-ink:#132420;
+    --accent-warm:#E0975C;
+    --accent-warm-ink:#2A1D12;
+    --danger:#E38B84;
+    --danger-ink:#2B1715;
+    --code-bg:#0E1114;
+    --code-fg:#DCE0E6;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 28px -14px rgba(0,0,0,.55);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#14181D;
+  --paper-raised:#1B2027;
+  --ink:#E8E6DF;
+  --ink-dim:#9CA0A8;
+  --line:#2A2F36;
+  --line-soft:#232830;
+  --accent:#68B79A;
+  --accent-ink:#132420;
+  --accent-warm:#E0975C;
+  --accent-warm-ink:#2A1D12;
+  --danger:#E38B84;
+  --danger-ink:#2B1715;
+  --code-bg:#0E1114;
+  --code-fg:#DCE0E6;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 28px -14px rgba(0,0,0,.55);
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Source Sans 3", system-ui, sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;}
+a{color:var(--accent);}
+
+.shell{
+  display:grid;
+  grid-template-columns:250px minmax(0,780px);
+  justify-content:center;
+  gap:56px;
+  max-width:1180px;
+  margin:0 auto;
+  padding:40px 20px 120px;
+}
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr; gap:0;}
+  .toc{display:none;}
+}
+
+/* ---- TOC ---- */
+.toc{
+  position:sticky;
+  top:32px;
+  align-self:start;
+  max-height:calc(100vh - 64px);
+  overflow-y:auto;
+  padding-right:8px;
+}
+.toc-title{
+  font-family:"IBM Plex Mono", monospace;
+  font-size:11px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--ink-dim);
+  margin:0 0 14px;
+}
+.toc nav{display:flex; flex-direction:column; gap:2px;}
+.toc a{
+  color:var(--ink-dim);
+  text-decoration:none;
+  font-size:13.5px;
+  padding:6px 10px;
+  border-radius:6px;
+  border-left:2px solid transparent;
+}
+.toc a.sub{padding-left:24px; font-size:13px;}
+.toc a:hover{color:var(--ink); background:var(--line-soft);}
+
+/* ---- Cover ---- */
+.cover{
+  padding-bottom:36px;
+  margin-bottom:40px;
+  border-bottom:1px solid var(--line);
+}
+.eyebrow{
+  font-family:"IBM Plex Mono", monospace;
+  font-size:12px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin:0 0 16px;
+}
+h1.title{
+  font-family:"Fraunces", Georgia, serif;
+  font-weight:600;
+  font-size:clamp(34px,5vw,50px);
+  line-height:1.05;
+  letter-spacing:-.01em;
+  margin:0 0 14px;
+  text-wrap:balance;
+}
+.dek{
+  font-size:17.5px;
+  color:var(--ink-dim);
+  max-width:56ch;
+  margin:0 0 22px;
+}
+.meta-row{
+  display:flex; flex-wrap:wrap; gap:10px 22px;
+  font-family:"IBM Plex Mono", monospace;
+  font-size:12.5px;
+  color:var(--ink-dim);
+}
+.meta-row b{color:var(--ink); font-weight:600;}
+
+/* ---- sections ---- */
+section{margin-bottom:52px; scroll-margin-top:24px;}
+.sec-num{
+  font-family:"IBM Plex Mono", monospace;
+  font-size:12px;
+  color:var(--accent);
+  letter-spacing:.08em;
+}
+h2{
+  font-family:"Fraunces", Georgia, serif;
+  font-weight:600;
+  font-size:28px;
+  margin:4px 0 18px;
+  text-wrap:balance;
+}
+h3{
+  font-family:"Source Sans 3", sans-serif;
+  font-weight:700;
+  font-size:18px;
+  margin:28px 0 10px;
+}
+p{margin:0 0 14px; max-width:68ch;}
+ul,ol{margin:0 0 16px; padding-left:22px;}
+li{margin-bottom:6px; max-width:64ch;}
+strong{color:var(--ink); font-weight:600;}
+code{
+  font-family:"IBM Plex Mono", monospace;
+  font-size:.88em;
+  background:var(--line-soft);
+  padding:.12em .4em;
+  border-radius:4px;
+}
+hr.div{border:none; border-top:1px solid var(--line); margin:44px 0;}
+
+/* ---- callouts ---- */
+.callout{
+  display:flex; gap:12px;
+  padding:16px 18px;
+  border-radius:10px;
+  margin:18px 0;
+  font-size:14.5px;
+}
+.callout p{margin:0; max-width:none;}
+.callout .tag{
+  font-family:"IBM Plex Mono", monospace;
+  font-size:11px; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase;
+  white-space:nowrap; padding-top:1px;
+}
+.callout.tip{background:var(--accent-ink); color:var(--ink);}
+.callout.tip .tag{color:var(--accent);}
+.callout.warn{background:var(--accent-warm-ink); color:var(--ink);}
+.callout.warn .tag{color:var(--accent-warm);}
+.callout.risk{background:var(--danger-ink); color:var(--ink);}
+.callout.risk .tag{color:var(--danger);}
+
+/* ---- cards / grids ---- */
+.grid{display:grid; gap:14px;}
+.grid.cols-2{grid-template-columns:1fr 1fr;}
+.grid.cols-3{grid-template-columns:repeat(3,1fr);}
+@media (max-width:640px){.grid.cols-2,.grid.cols-3{grid-template-columns:1fr;}}
+
+.card{
+  background:var(--paper-raised);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:18px 20px;
+  box-shadow:var(--shadow);
+}
+.card h4{
+  margin:0 0 6px;
+  font-size:14.5px;
+  font-weight:700;
+  display:flex; align-items:center; gap:8px;
+}
+.card p{margin:0; font-size:13.5px; color:var(--ink-dim); max-width:none;}
+.card .path{
+  display:block; margin-top:8px;
+  font-family:"IBM Plex Mono", monospace;
+  font-size:11.5px; color:var(--accent);
+}
+
+/* stat tiles */
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:16px 0 8px;}
+@media (max-width:640px){.stats{grid-template-columns:repeat(2,1fr);}}
+.stat{
+  background:var(--paper-raised);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:14px 16px;
+}
+.stat .n{
+  font-family:"IBM Plex Mono", monospace;
+  font-size:22px; font-weight:600;
+  font-variant-numeric:tabular-nums;
+  color:var(--accent);
+}
+.stat .l{font-size:11.5px; color:var(--ink-dim); margin-top:2px; text-transform:uppercase; letter-spacing:.05em;}
+
+/* table */
+.tbl-wrap{overflow-x:auto; margin:16px 0;}
+table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:520px;}
+th{
+  text-align:left; font-family:"IBM Plex Mono", monospace;
+  font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--ink-dim); font-weight:600;
+  padding:8px 14px 8px 0; border-bottom:1px solid var(--line);
+}
+td{padding:10px 14px 10px 0; border-bottom:1px solid var(--line-soft); vertical-align:top;}
+td code{white-space:nowrap;}
+
+/* code blocks */
+pre{
+  background:var(--code-bg);
+  color:var(--code-fg);
+  border-radius:10px;
+  padding:16px 18px;
+  overflow-x:auto;
+  font-family:"IBM Plex Mono", monospace;
+  font-size:12.8px;
+  line-height:1.55;
+  margin:14px 0;
+}
+pre code{background:none; padding:0; color:inherit; font-size:inherit;}
+.filebar{
+  font-family:"IBM Plex Mono", monospace;
+  font-size:11px;
+  color:var(--ink-dim);
+  margin:0 0 -6px;
+}
+
+/* pipeline / flow */
+.flow{
+  display:flex; align-items:stretch; gap:0;
+  flex-wrap:wrap;
+  margin:18px 0 8px;
+}
+.flow .step{
+  background:var(--paper-raised);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:12px 14px;
+  min-width:118px;
+  flex:1 1 118px;
+  box-shadow:var(--shadow);
+}
+.flow .step .k{
+  font-family:"IBM Plex Mono", monospace;
+  font-size:10.5px; color:var(--accent);
+  text-transform:uppercase; letter-spacing:.06em;
+}
+.flow .step .v{font-size:13.5px; font-weight:600; margin-top:3px;}
+.flow .arrow{
+  display:flex; align-items:center; justify-content:center;
+  color:var(--ink-dim); font-size:16px; padding:0 6px;
+  flex:0 0 auto;
+}
+@media (max-width:640px){.flow{flex-direction:column;} .flow .arrow{transform:rotate(90deg); padding:2px 0;}}
+
+/* endpoint block */
+.endpoint{
+  display:flex; align-items:center; gap:10px;
+  font-family:"IBM Plex Mono", monospace;
+  font-size:13.5px;
+  margin-bottom:4px;
+}
+.method{
+  background:var(--accent); color:var(--accent-ink);
+  font-weight:700; font-size:11px;
+  padding:3px 8px; border-radius:5px;
+  letter-spacing:.03em;
+}
+.method.get{background:var(--ink-dim); color:var(--paper-raised);}
+
+/* UI mock */
+.mock{
+  background:var(--paper-raised);
+  border:1px solid var(--line);
+  border-radius:12px;
+  box-shadow:var(--shadow);
+  padding:20px 22px;
+  margin:18px 0;
+}
+.mock .mock-title{display:flex; align-items:center; gap:8px; font-weight:700; font-size:15px; margin-bottom:14px;}
+.mock .field{margin-bottom:12px;}
+.mock .field label{display:block; font-size:11.5px; color:var(--ink-dim); margin-bottom:4px; text-transform:uppercase; letter-spacing:.04em;}
+.mock .field .box{
+  background:var(--line-soft); border:1px solid var(--line); border-radius:7px;
+  padding:8px 10px; font-size:13.5px; color:var(--ink);
+}
+.mock .field-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.mock .result{
+  margin-top:14px; padding:14px 16px;
+  background:var(--accent-ink); border-radius:9px;
+  font-size:14px;
+}
+.mock .result .big{font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:18px; color:var(--accent);}
+.mock .insight-box{
+  margin-top:10px; padding:12px 14px; background:var(--line-soft); border-radius:9px; font-size:13px; color:var(--ink-dim);
+}
+
+/* badges */
+.badge{
+  display:inline-flex; align-items:center; gap:5px;
+  font-family:"IBM Plex Mono", monospace;
+  font-size:11px; font-weight:600;
+  padding:3px 9px; border-radius:100px;
+  background:var(--line-soft); color:var(--ink-dim);
+}
+.badge.on{background:var(--accent-ink); color:var(--accent);}
+
+/* numbered marker (replaces icon glyphs) */
+.marker{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:22px; height:22px; flex:0 0 auto;
+  border-radius:5px;
+  background:var(--accent); color:var(--accent-ink);
+  font-family:"IBM Plex Mono", monospace;
+  font-size:11px; font-weight:600;
+}
+.marker.neutral{background:var(--line-soft); color:var(--ink-dim);}
+.check{
+  display:inline-block;
+  font-family:"IBM Plex Mono", monospace;
+  font-size:10.5px; font-weight:600; letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--accent);
+  border:1px solid var(--accent);
+  border-radius:4px;
+  padding:1px 6px;
+  margin-right:6px;
+  vertical-align:1px;
+}
+
+/* Q&A / troubleshooting */
+.qa{
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--paper-raised);
+  box-shadow:var(--shadow);
+  margin:16px 0;
+  overflow:hidden;
+}
+.qa + .qa{margin-top:14px;}
+.qa .q{
+  display:flex; gap:12px; align-items:flex-start;
+  padding:16px 20px;
+  border-bottom:1px solid var(--line-soft);
+  font-weight:600; font-size:14.5px;
+}
+.qa .q .marker{margin-top:1px;}
+.qa .err{
+  margin:0; padding:12px 20px;
+  font-family:"IBM Plex Mono", monospace;
+  font-size:12px; color:var(--danger);
+  background:var(--danger-ink);
+  border-bottom:1px solid var(--line-soft);
+  white-space:pre-wrap;
+  overflow-x:auto;
+}
+.qa .a{padding:16px 20px; font-size:14px; color:var(--ink-dim);}
+.qa .a p{margin:0 0 10px; max-width:none;}
+.qa .a p:last-child{margin-bottom:0;}
+.qa .a code{color:var(--ink);}
+
+/* footer */
+.colophon{
+  margin-top:60px; padding-top:24px; border-top:1px solid var(--line);
+  font-size:12.5px; color:var(--ink-dim);
+  display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  font-family:"IBM Plex Mono", monospace;
+}
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <p class="toc-title">Contents</p>
+    <nav>
+      <a href="#overview">00 · Overview</a>
+      <a href="#tour">01 · Product Tour</a>
+      <a href="#architecture">02 · Architecture</a>
+      <a href="#model">03 · The Model</a>
+      <a href="#api">04 · API Reference</a>
+      <a href="#a-predict" class="sub">/predict</a>
+      <a href="#a-insights" class="sub">/insights</a>
+      <a href="#frontend">05 · Frontend</a>
+      <a href="#run">06 · Running It</a>
+      <a href="#real-data">07 · Training on Real Data</a>
+      <a href="#deploy">08 · Deployment</a>
+      <a href="#troubleshooting">09 · Troubleshooting</a>
+      <a href="#roadmap">10 · Roadmap</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="cover">
+      <p class="eyebrow">Project Handbook · v1.0</p>
+      <h1 class="title">AI Real Estate Advisor</h1>
+      <p class="dek">A machine-learning price predictor and GenAI investment advisor for Indian residential property — from a synthetic dataset to a running API and app.</p>
+      <div class="meta-row">
+        <span><b>Repo</b> ramabharti8/AI-Real-Estate-Advisor</span>
+        <span><b>Stack</b> scikit-learn · FastAPI · Streamlit</span>
+        <span><b>Model</b> Gradient Boosting Regressor</span>
+        <span><b>Status</b> verified locally, deploy-ready</span>
+      </div>
+    </div>
+
+    <!-- 00 OVERVIEW -->
+    <section id="overview">
+      <span class="sec-num">00</span>
+      <h2>What this app does</h2>
+      <p>You describe a property — city, locality, size, age, furnishing, amenities — and the app returns two things: a <strong>predicted market price</strong> from a model trained on comparable listings, and a <strong>plain-language investment insight</strong> written by an LLM (or a rule-based template when no AI key is configured). A scatter plot places the property against similar listings so the number isn't a black box.</p>
+
+      <div class="stats">
+        <div class="stat"><div class="n">0.951</div><div class="l">Test R²</div></div>
+        <div class="stat"><div class="n">₹14.7L</div><div class="l">Mean abs. error</div></div>
+        <div class="stat"><div class="n">4,000</div><div class="l">Training rows</div></div>
+        <div class="stat"><div class="n">7</div><div class="l">Cities covered</div></div>
+      </div>
+
+      <div class="callout risk">
+        <span class="tag">Is this real data? No.</span>
+        <p>The 4,000 listings it's trained on are <strong>synthetically generated</strong> (a formula-based script, not real transactions or scraped listings). So the ₹2.27 Cr the app prints for a given input is not a real Mumbai market price — it's the model correctly reproducing the pattern <em>we</em> built into the fake data. The 0.95 R² proves the ML pipeline works, not that the price is accurate. See <a href="#model">§03</a> for the full explanation and how to plug in real data.</p>
+      </div>
+    </section>
+
+    <!-- 01 PRODUCT TOUR -->
+    <section id="tour">
+      <span class="sec-num">01</span>
+      <h2>Product tour</h2>
+      <p>The whole experience is one Streamlit page: a form on top, results below. This is what it looks like mid-use — a 2BHK in Andheri, Mumbai, just priced.</p>
+
+      <div class="mock">
+        <div class="mock-title">AI Real Estate Advisor — Prediction Form</div>
+        <div class="field-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="field"><label>City</label><div class="box">Mumbai</div></div>
+          <div class="field"><label>Locality</label><div class="box">Andheri</div></div>
+          <div class="field"><label>Area (sqft)</label><div class="box">1,200</div></div>
+          <div class="field"><label>Bedrooms / Bath</label><div class="box">2 BHK · 2 Bath</div></div>
+          <div class="field"><label>Age</label><div class="box">5 years</div></div>
+          <div class="field"><label>Furnishing</label><div class="box">Unfurnished</div></div>
+        </div>
+        <div class="result">
+          Predicted price · <span class="big">₹2.27 Cr</span>
+          <span class="badge" style="margin-left:8px;">GradientBoostingRegressor</span>
+          <div class="insight-box">"This 2BHK in Andheri, Mumbai is estimated at ₹2.27 Cr (~₹18,925/sqft). With 6.0/10 amenities and 5 years of age, it sits in line with comparable unfurnished properties in the area…" <span class="badge" style="margin-top:6px;">template · no API key set</span></div>
+        </div>
+      </div>
+
+      <h3>The three moments that matter</h3>
+      <div class="grid cols-3">
+        <div class="card">
+          <h4><span class="marker">1</span> Fill the form</h4>
+          <p>Nine inputs, all constrained — you can't submit a 40-bedroom shack or negative square footage. Bad inputs are rejected before they reach the model.</p>
+        </div>
+        <div class="card">
+          <h4><span class="marker">2</span> Read the price</h4>
+          <p>Formatted the way Indian listings actually read prices: Lakhs under a crore, Crores above — or in USD, if you've switched the sidebar currency toggle.</p>
+        </div>
+        <div class="card">
+          <h4><span class="marker">3</span> Read the reasoning</h4>
+          <p>A short paragraph explaining <em>why</em> — amenities, age, furnishing — plus a scatter chart of similar listings so you can eyeball whether the number is reasonable.</p>
+        </div>
+      </div>
+
+      <h3>Beyond a single prediction</h3>
+      <p>The app is organized into four tabs, not one form:</p>
+      <div class="grid cols-2">
+        <div class="card">
+          <h4><span class="marker neutral">01</span> Valuation</h4>
+          <p>The form above — price, confidence range, price/sqft, AI insight, comparable listings, and a one-click save to the sidebar watchlist.</p>
+        </div>
+        <div class="card">
+          <h4><span class="marker neutral">02</span> Market Insights</h4>
+          <p>Dataset-wide view: listing counts, median price and area, average price by city, price-vs-area scatter, and a price-by-furnishing comparison.</p>
+        </div>
+        <div class="card">
+          <h4><span class="marker neutral">03</span> Financing</h4>
+          <p>A loan/EMI calculator — down payment, interest rate and tenure sliders compute monthly EMI, total interest, and total payment, pre-filled from your last valuation.</p>
+        </div>
+        <div class="card">
+          <h4><span class="marker neutral">04</span> History</h4>
+          <p>Every valuation run this session, as a table, exportable to CSV from the sidebar.</p>
+        </div>
+      </div>
+
+      <h3>Sidebar tools</h3>
+      <p>The sidebar stays out of internal plumbing (no raw config or model internals) and instead offers working tools: an <strong>INR/USD currency toggle</strong> that reformats every price on the page, a <strong>city snapshot</strong> lookup (median price and price/sqft for any covered city, pulled live from the dataset), a <strong>unit converter</strong> (sqft ↔ sq.m ↔ acre), and a <strong>watchlist</strong> for bookmarking specific valuations separately from the full session history.</p>
+    </section>
+
+    <!-- 02 ARCHITECTURE -->
+    <section id="architecture">
+      <span class="sec-num">02</span>
+      <h2>Architecture</h2>
+      <p>Three independent pieces, connected by a plain HTTP call and a shared model file on disk. Nothing here needs a database — the trained model <em>is</em> the persisted state.</p>
+
+      <div class="flow">
+        <div class="step"><div class="k">Offline</div><div class="v">generate_data.py</div></div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="k">Offline</div><div class="v">train.py</div></div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="k">Artifact</div><div class="v">model.joblib</div></div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="k">Runtime</div><div class="v">FastAPI</div></div>
+        <div class="arrow">→</div>
+        <div class="step"><div class="k">Runtime</div><div class="v">Streamlit UI</div></div>
+      </div>
+
+      <h3>Why a separate API instead of calling the model straight from Streamlit</h3>
+      <p>Streamlit could import the model directly — fewer moving parts. It talks to FastAPI over HTTP instead because that's the shape a real product takes: the model can be redeployed, scaled, or swapped for a different framework without touching the UI, and the same <code>/predict</code> endpoint can serve a future mobile app or another frontend untouched.</p>
+
+      <div class="grid cols-2">
+        <div class="card">
+          <h4><span class="marker neutral">API</span> Model service</h4>
+          <p>FastAPI app that loads <code>model.joblib</code> once at startup, validates requests with Pydantic, and serves predictions + LLM insights.</p>
+          <span class="path">app/main.py</span>
+        </div>
+        <div class="card">
+          <h4><span class="marker neutral">UI</span> Presentation layer</h4>
+          <p>Streamlit form that posts to the API over plain <code>requests</code> calls and renders the response — no business logic lives here.</p>
+          <span class="path">app/streamlit_app.py</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 MODEL -->
+    <section id="model">
+      <span class="sec-num">03</span>
+      <h2>The model</h2>
+      <p>Trained on <code>data/housing_data.csv</code> — 4,000 synthetic listings across seven Indian metros, generated with deliberate correlations (bigger area, more amenities, newer builds → higher price, with locality-level premiums) so the regression problem is realistic rather than random noise.</p>
+
+      <div class="callout warn">
+        <span class="tag">Honest limitation</span>
+        <p>This is <strong>not trained on real transaction data</strong>. Treat the R² and error figures as evidence the pipeline works correctly, not as a claim about real Indian property markets. Swapping in a real listings CSV with the same column names is a drop-in replacement — see <a href="#run">§06</a>.</p>
+      </div>
+
+      <h3>Feature set</h3>
+      <div class="tbl-wrap">
+        <table>
+          <tr><th>Feature</th><th>Type</th><th>Notes</th></tr>
+          <tr><td><code>area_sqft</code></td><td>numeric</td><td>built-up area, 100–20,000 sqft</td></tr>
+          <tr><td><code>city</code></td><td>categorical</td><td>Mumbai, Delhi, Bangalore, Pune, Hyderabad, Chennai, Ahmedabad</td></tr>
+          <tr><td><code>locality</code></td><td>text</td><td>free-text neighbourhood</td></tr>
+          <tr><td><code>bedrooms</code> / <code>bathrooms</code></td><td>numeric</td><td>0–10</td></tr>
+          <tr><td><code>age_years</code></td><td>numeric</td><td>0–100</td></tr>
+          <tr><td><code>furnishing</code></td><td>categorical</td><td>Unfurnished / Semi / Fully</td></tr>
+          <tr><td><code>parking</code></td><td>numeric</td><td>0–5 spots</td></tr>
+          <tr><td><code>amenities_score</code></td><td>numeric</td><td>0–10 composite score</td></tr>
+        </table>
+      </div>
+
+      <h3>Training procedure</h3>
+      <p>Two candidate regressors are cross-validated (5-fold) on an 80/20 split, and the better one is kept:</p>
+      <div class="tbl-wrap">
+        <table>
+          <tr><th>Model</th><th>CV R² (mean)</th><th>CV R² (std)</th><th>Selected</th></tr>
+          <tr><td>Random Forest</td><td>0.9482</td><td>±0.0041</td><td>—</td></tr>
+          <tr><td>Gradient Boosting</td><td><strong>0.9542</strong></td><td>±0.0036</td><td>✓</td></tr>
+        </table>
+      </div>
+      <p>Held-out test set (800 rows): <strong>R² 0.9511</strong> · MAE ≈ <strong>₹14.7 Lakh</strong> · RMSE ≈ <strong>₹20.6 Lakh</strong>. Preprocessing is a single sklearn <code>Pipeline</code> — standard-scaled numerics, one-hot encoded categoricals — saved together with the model so there's no train/serve skew.</p>
+
+      <p class="filebar">src/train.py</p>
+      <pre><code>CANDIDATES = {
+    "random_forest": RandomForestRegressor(n_estimators=300, random_state=42),
+    "gradient_boosting": GradientBoostingRegressor(
+        n_estimators=300, learning_rate=0.05, max_depth=3, random_state=42
+    ),
+}
+# 5-fold CV on each → keep the higher mean R² → fit on full train split
+# → evaluate on held-out test set → joblib.dump() the winning pipeline</code></pre>
+    </section>
+
+    <!-- 04 API -->
+    <section id="api">
+      <span class="sec-num">04</span>
+      <h2>API reference</h2>
+      <p>Two POST endpoints, both JSON in, JSON out. Interactive docs are auto-generated by FastAPI at <code>/docs</code> once the server is running.</p>
+
+      <h3 id="a-predict">Predict a price</h3>
+      <div class="endpoint"><span class="method">POST</span> /predict</div>
+      <p class="filebar">Request</p>
+      <pre><code>{
+  "area_sqft": 1200,
+  "city": "Mumbai",
+  "locality": "Andheri",
+  "bedrooms": 2,
+  "bathrooms": 2,
+  "age_years": 5,
+  "furnishing": "Unfurnished",
+  "parking": 1,
+  "amenities_score": 6.0
+}</code></pre>
+      <p class="filebar">Response</p>
+      <pre><code>{
+  "predicted_price": 22700000.0,
+  "predicted_price_formatted": "₹2.27 Cr",
+  "currency": "INR",
+  "model_name": "GradientBoostingRegressor"
+}</code></pre>
+
+      <h3 id="a-insights">Generate an investment insight</h3>
+      <div class="endpoint"><span class="method">POST</span> /insights</div>
+      <p>Same body as <code>/predict</code>, plus the <code>predicted_price</code> you just received. If <code>OPENAI_API_KEY</code> is set, an LLM writes the paragraph; otherwise a rule-based template fills in cleanly — the field never breaks, it just gets less clever.</p>
+      <pre><code>{
+  "insight": "This 2BHK in Andheri, Mumbai is estimated at ₹2.27 Cr (~₹18,925/sqft)…",
+  "source": "template"   // or "llm" when OPENAI_API_KEY is configured
+}</code></pre>
+
+      <div class="grid cols-2">
+        <div class="card">
+          <h4><span class="method get">GET</span> /health</h4>
+          <p>Returns <code>{"status":"ok","model_ready":true}</code> — checks the model artifact exists without loading it.</p>
+        </div>
+        <div class="card">
+          <h4><span class="method get">GET</span> /docs</h4>
+          <p>Swagger UI, generated automatically from the Pydantic schemas in <code>app/schemas.py</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 FRONTEND -->
+    <section id="frontend">
+      <span class="sec-num">05</span>
+      <h2>Frontend</h2>
+      <p>Streamlit renders the form, calls the API with <code>requests</code>, and draws the comparison chart with matplotlib — nothing is computed client-side. It reads the API's address from <code>API_BASE_URL</code>, defaulting to <code>http://localhost:8000</code>, so pointing the UI at a deployed backend is one environment variable.</p>
+      <div class="callout tip">
+        <span class="tag">Why this matters locally</span>
+        <p>If something else on your machine already occupies port 8000 (a container runtime, another API), just run the backend on a different port and export <code>API_BASE_URL</code> before starting Streamlit — no code changes needed.</p>
+      </div>
+    </section>
+
+    <!-- 06 RUNNING IT -->
+    <section id="run">
+      <span class="sec-num">06</span>
+      <h2>Running it locally — step by step</h2>
+      <p>Eight steps, in order. Each one ends with something you can check before moving to the next — don't skip the checks, they're where problems actually surface.</p>
+
+      <h3 id="s1">Step 1 · Prerequisites</h3>
+      <p>You need Python 3.10–3.13 and Git. Confirm before anything else:</p>
+      <pre><code>python --version     # should print 3.10.x – 3.13.x
+git --version</code></pre>
+
+      <h3 id="s2">Step 2 · Get the code</h3>
+      <pre><code>git clone https://github.com/ramabharti8/AI-Real-Estate-Advisor.git
+cd AI-Real-Estate-Advisor</code></pre>
+
+      <h3 id="s3">Step 3 · Create a virtual environment</h3>
+      <p>Keeps this project's packages separate from everything else on your machine.</p>
+      <pre><code># Windows (Git Bash)
+python -m venv venv
+source venv/Scripts/activate
+
+# macOS / Linux
+python3 -m venv venv
+source venv/bin/activate</code></pre>
+      <p><span class="check">Verify</span> your terminal prompt should now start with <code>(venv)</code>.</p>
+
+      <h3 id="s4">Step 4 · Install dependencies</h3>
+      <pre><code>pip install -r requirements.txt</code></pre>
+      <p><span class="check">Verify</span> no red error text at the end. Takes 1–3 minutes on a fresh machine.</p>
+
+      <h3 id="s5">Step 5 · Generate the dataset</h3>
+      <pre><code>python src/generate_data.py</code></pre>
+      <p><span class="check">Verify</span> <code>data/housing_data.csv</code> now exists with ~4,000 rows.</p>
+
+      <h3 id="s6">Step 6 · Train the model</h3>
+      <pre><code>python src/train.py</code></pre>
+      <p>This cross-validates two models and keeps the better one. Expect console output ending with something like:</p>
+      <pre><code>Selected model: gradient_boosting
+Test MAE:  1,468,817
+Test RMSE: 2,064,111
+Test R2:   0.9511
+
+Saved model -> app/model/model.joblib
+Saved metrics -> app/model/metrics.json</code></pre>
+      <p><span class="check">Verify</span> <code>app/model/model.joblib</code> and <code>app/model/metrics.json</code> now exist. Without this file, the API responds with a 503.</p>
+
+      <h3 id="s7">Step 7 · Start the backend API</h3>
+      <pre><code>uvicorn app.main:app --reload --port 8000</code></pre>
+      <p>Leave this terminal running. <span class="check">Verify</span> open <a href="http://localhost:8000/health">localhost:8000/health</a> in a browser — it should show <code>{"status":"ok","model_ready":true}</code>. Also try <a href="http://localhost:8000/docs">localhost:8000/docs</a> for the interactive API playground.</p>
+      <div class="callout warn">
+        <span class="tag">Port already in use?</span>
+        <p>Something else on your machine (Docker, another app) may already hold port 8000. Run on a different port instead: <code>uvicorn app.main:app --reload --port 8010</code> — then set <code>API_BASE_URL</code> in Step 8 to match.</p>
+      </div>
+
+      <h3 id="s8">Step 8 · Start the frontend (open a <em>second</em> terminal)</h3>
+      <pre><code># activate the venv again in this new terminal first
+source venv/Scripts/activate
+export API_BASE_URL=http://localhost:8000   # skip if you used the default port
+streamlit run app/streamlit_app.py</code></pre>
+      <p><span class="check">Verify</span> a browser tab opens at <code>localhost:8501</code> with the form. Fill it in, click <strong>Predict Price</strong> — you should see a price, an insight paragraph, and a comparison chart within a couple of seconds.</p>
+
+      <h3>Optional · Turn on real AI insights</h3>
+      <p>Without this, <code>/insights</code> still works — it just uses a template instead of an LLM.</p>
+      <pre><code>cp .env.example .env
+# open .env and set:
+OPENAI_API_KEY=sk-...</code></pre>
+      <p>Restart the API (Step 7) after adding the key. The insight response's <code>"source"</code> field will switch from <code>"template"</code> to <code>"llm"</code>.</p>
+
+      <h3>Optional · Run the test suite</h3>
+      <pre><code>pytest -q
+# 8 passed — covers the training artifacts and both API endpoints</code></pre>
+
+      <div class="callout tip">
+        <span class="tag">Daily workflow, once set up</span>
+        <p>You only repeat Steps 5–6 when the data or model changes. Day to day it's just: activate venv → Step 7 in one terminal → Step 8 in another.</p>
+      </div>
+    </section>
+
+    <!-- 07 REAL DATA -->
+    <section id="real-data">
+      <span class="sec-num">07</span>
+      <h2>Training on a real dataset</h2>
+      <p>Everything so far uses synthetic data (§03). This walks through replacing it with a real, downloaded dataset end to end — download, clean, retrain, and compare the new model's accuracy against the synthetic baseline.</p>
+
+      <div class="callout tip">
+        <span class="tag">Reference dataset</span>
+        <p>These steps target Kaggle's <strong>"Bengaluru House Price Data"</strong> (<code>amitabhajoy/bengaluru-house-price-data</code>) — one of the most widely used open Indian housing datasets, ~13,000 real listings. Any other CSV works too; you'll just adjust the column mapping in Step 3.</p>
+      </div>
+
+      <h3 id="rd1">Step 1 · Get a Kaggle account and API token</h3>
+      <p>Create a free account at kaggle.com if you don't have one. Then: <strong>Account → API → Create New Token</strong>. This downloads a <code>kaggle.json</code> file containing your credentials.</p>
+      <pre><code># place it where the Kaggle CLI expects it
+mkdir -p ~/.kaggle
+mv ~/Downloads/kaggle.json ~/.kaggle/kaggle.json
+chmod 600 ~/.kaggle/kaggle.json     # Git Bash / macOS / Linux</code></pre>
+      <p>On plain Windows PowerShell, copy it to <code>C:\Users\&lt;you&gt;\.kaggle\kaggle.json</code> instead — no <code>chmod</code> needed.</p>
+
+      <h3 id="rd2">Step 2 · Download the dataset</h3>
+      <pre><code>pip install kaggle
+mkdir -p data/raw
+kaggle datasets download -d amitabhajoy/bengaluru-house-price-data -p data/raw --unzip</code></pre>
+      <p><span class="check">Verify</span> <code>data/raw/Bengaluru_House_Data.csv</code> now exists. No Kaggle CLI access? Download the ZIP manually from the dataset's Kaggle page and extract it to the same path.</p>
+      <div class="callout warn">
+        <span class="tag">Any other dataset works too</span>
+        <p>Looking for other real listings? Kaggle's search for "India house price" or "real estate India" turns up several — MagicBricks scrapes, city-specific listings, etc. Column names will differ; adjust Step 3 accordingly.</p>
+      </div>
+
+      <h3 id="rd3">Step 3 · Convert it to this project's schema</h3>
+      <p>The model expects nine specific columns (§03's feature table). Real listings datasets rarely match that exactly — the Bengaluru dataset, for instance, has no age, furnishing, or amenities columns. <code>src/prepare_real_data.py</code> handles the conversion and is explicit about every value it has to invent:</p>
+      <pre><code>python src/prepare_real_data.py --input data/raw/Bengaluru_House_Data.csv --city Bangalore</code></pre>
+      <p>What it does, column by column:</p>
+      <div class="tbl-wrap">
+        <table>
+          <tr><th>Target column</th><th>Source</th><th>Handling</th></tr>
+          <tr><td><code>area_sqft</code></td><td><code>total_sqft</code></td><td>parses ranges ("2100-2850") and unit suffixes (sq. meter, acre, cent, guntha)</td></tr>
+          <tr><td><code>bedrooms</code></td><td><code>size</code></td><td>extracts the leading digit from "4 BHK" / "4 Bedroom"</td></tr>
+          <tr><td><code>bathrooms</code></td><td><code>bath</code></td><td>direct, coerced to numeric</td></tr>
+          <tr><td><code>locality</code></td><td><code>location</code></td><td>cleaned text</td></tr>
+          <tr><td><code>price</code></td><td><code>price</code></td><td>Kaggle stores this in Lakh INR — multiplied by 100,000</td></tr>
+          <tr><td><code>age_years</code></td><td><em>not present</em></td><td><strong>imputed</strong>: random 0–14 years</td></tr>
+          <tr><td><code>furnishing</code></td><td><em>not present</em></td><td><strong>imputed</strong>: random, weighted toward Unfurnished</td></tr>
+          <tr><td><code>parking</code></td><td><code>balcony</code></td><td><strong>proxied</strong> from balcony count, not a real parking figure</td></tr>
+          <tr><td><code>amenities_score</code></td><td><em>not present</em></td><td><strong>imputed</strong>: random, centered at 6.0/10</td></tr>
+        </table>
+      </div>
+      <p><span class="check">Verify</span> the script prints row counts and its imputation summary, then writes <code>data/housing_data.csv</code> — overwriting the synthetic file. Back it up first if you want to keep both: <code>cp data/housing_data.csv data/housing_data_synthetic.csv</code> before running Step 2.</p>
+
+      <h3 id="rd4">Step 4 · Retrain</h3>
+      <pre><code>python src/train.py</code></pre>
+      <p>Same command as §06 Step 6 — it always trains on whatever is currently at <code>data/housing_data.csv</code>.</p>
+
+      <h3 id="rd5">Step 5 · Compare against the synthetic baseline</h3>
+      <p>Read the new <code>app/model/metrics.json</code> against the synthetic numbers from §03. Expect the real-data R² to be <strong>noticeably lower</strong> — commonly 0.6–0.8 instead of 0.95. That drop is the honest answer to "does this work on real data": real prices depend on factors this feature set doesn't capture (exact floor, view, builder reputation, negotiation), and three of the nine features are imputed noise rather than signal. A lower, real R² is more trustworthy than a high, synthetic one.</p>
+
+      <h3 id="rd6">Step 6 · Test predictions against known listings</h3>
+      <p>Pick a few rows straight out of <code>data/raw/Bengaluru_House_Data.csv</code>, run them through <code>/predict</code>, and compare the model's number to the listing's actual price:</p>
+      <pre><code>curl -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d '{
+  "area_sqft": 1056, "city": "Bangalore", "locality": "Electronic City Phase II",
+  "bedrooms": 2, "bathrooms": 2, "age_years": 5, "furnishing": "Semi-Furnished",
+  "parking": 1, "amenities_score": 6.0
+}'
+# compare against that row's real price (39.07 Lakh in the raw file)</code></pre>
+      <p>Restart the API (§06 Step 7) after retraining so it picks up the new model file — it's loaded once at startup, not per request.</p>
+
+      <div class="callout risk">
+        <span class="tag">Before you trust the numbers</span>
+        <p>This pipeline is a learning exercise in going from raw data to a served model, not a licensed valuation product. Even with real prices, the imputed age/furnishing/amenities columns mean predictions should be treated as ballpark estimates, not appraisals.</p>
+      </div>
+    </section>
+
+    <!-- 08 DEPLOY -->
+    <section id="deploy">
+      <span class="sec-num">08</span>
+      <h2>Deployment</h2>
+      <p>Backend and frontend deploy as two separate services — the split from <a href="#architecture">§02</a> pays off here directly.</p>
+
+      <div class="grid cols-2">
+        <div class="card">
+          <h4><span class="marker neutral">01</span> API → Render / Railway</h4>
+          <p><code>render.yaml</code>, <code>Procfile</code> and <code>runtime.txt</code> are already in the repo. Render builds from the Procfile's <code>uvicorn app.main:app</code> command; the training step runs at build time so the model artifact is always fresh.</p>
+        </div>
+        <div class="card">
+          <h4><span class="marker neutral">02</span> UI → Streamlit Community Cloud</h4>
+          <p>Point it at <code>app/streamlit_app.py</code>, set <code>API_BASE_URL</code> to your deployed API's URL in the app's secrets, and it just works.</p>
+        </div>
+      </div>
+      <p>Full step-by-step, including environment variables and health-check paths, is in <code>docs/DEPLOYMENT.md</code>.</p>
+
+      <div class="callout risk">
+        <span class="tag">Before you deploy</span>
+        <p>Set <code>OPENAI_API_KEY</code> as a secret on the hosting platform, never in the repo. <code>.env</code> is already gitignored — keep it that way.</p>
+      </div>
+    </section>
+
+    <!-- 09 TROUBLESHOOTING -->
+    <section id="troubleshooting">
+      <span class="sec-num">09</span>
+      <h2>Troubleshooting — errors and answers</h2>
+      <p>Every error below was actually hit while setting this project up on Windows. Each entry shows the exact message, why it happens, and the fix.</p>
+
+      <div class="qa">
+        <div class="q"><span class="marker">Q1</span> <code>python -m venv venv</code> fails with "Unable to copy … venvlauncher.exe"</div>
+        <pre class="err">Unable to copy 'C:\...\venv\scripts\nt\venvlauncher.exe' to
+'E:\AI-Real-Estate-Advisor\venv\Scripts\python.exe'</pre>
+        <div class="a">
+          <p><strong>Cause:</strong> a <code>venv</code> folder already exists at that path, and its <code>python.exe</code> is locked — usually because a server (uvicorn, streamlit) started from that same environment is still running and holding the file open.</p>
+          <p><strong>Fix:</strong> stop whatever is using that interpreter, then delete and recreate the folder.</p>
+          <pre><code>Get-Process python,streamlit -ErrorAction SilentlyContinue | Stop-Process -Force
+Remove-Item -Recurse -Force venv
+python -m venv venv</code></pre>
+        </div>
+      </div>
+
+      <div class="qa">
+        <div class="q"><span class="marker">Q2</span> <code>Remove-Item -Recurse -Force venv</code> fails with "Access to the path … is denied"</div>
+        <pre class="err">Remove-Item : Cannot remove item ...\charset_normalizer\cd.cp313-win_amd64.pyd:
+Access to the path 'cd.cp313-win_amd64.pyd' is denied.</pre>
+        <div class="a">
+          <p><strong>Cause:</strong> <code>.pyd</code> files are native DLLs. Once a Python process imports one, Windows keeps a lock on it for as long as that process is alive — even <code>-Force</code> can't override an OS-level file lock, only a permissions problem.</p>
+          <p><strong>Fix:</strong> find the process still holding the venv open and end it, then retry the delete.</p>
+          <pre><code>wmic process where "name='python.exe'" get ProcessId,CommandLine
+taskkill /PID &lt;pid-using-this-venv&gt; /F
+Remove-Item -Recurse -Force venv</code></pre>
+        </div>
+      </div>
+
+      <div class="qa">
+        <div class="q"><span class="marker">Q3</span> <code>source venv/Scripts/activate</code> — "term 'source' is not recognized"</div>
+        <pre class="err">source : The term 'source' is not recognized as the name of a cmdlet,
+function, script file, or operable program.</pre>
+        <div class="a">
+          <p><strong>Cause:</strong> <code>source</code> is a Bash/Git-Bash command. Windows PowerShell has no equivalent named command — it activates a venv by dot-invoking a <code>.ps1</code> script instead.</p>
+          <p><strong>Fix — pick the one matching your terminal:</strong></p>
+          <pre><code># PowerShell
+.\venv\Scripts\Activate.ps1
+
+# Git Bash
+source venv/Scripts/activate
+
+# cmd.exe
+venv\Scripts\activate.bat</code></pre>
+        </div>
+      </div>
+
+      <div class="qa">
+        <div class="q"><span class="marker">Q4</span> <code>Activate.ps1</code> is blocked by execution policy</div>
+        <pre class="err">... cannot be loaded because running scripts is disabled on this system.</pre>
+        <div class="a">
+          <p><strong>Cause:</strong> PowerShell's default execution policy blocks unsigned local scripts, and the venv activator is one.</p>
+          <p><strong>Fix:</strong> allow scripts for this process only — no admin rights needed, and it doesn't change the policy permanently.</p>
+          <pre><code>Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\venv\Scripts\Activate.ps1</code></pre>
+        </div>
+      </div>
+
+      <div class="qa">
+        <div class="q"><span class="marker">Q5</span> <code>uvicorn app.main:app --port 8000</code> — "[WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions"</div>
+        <pre class="err">ERROR:    [WinError 10013] An attempt was made to access a socket in a
+way forbidden by its access permissions</pre>
+        <div class="a">
+          <p><strong>Cause:</strong> port 8000 is already claimed by another process on the machine — in this environment, Docker Desktop's background service (<code>com.docker.backend.exe</code>) binds it. Windows refuses the second bind rather than sharing it.</p>
+          <p><strong>Fix:</strong> run the API on a free port instead, and point the frontend at the same port.</p>
+          <pre><code>uvicorn app.main:app --reload --port 8010
+
+# in the terminal running Streamlit:
+$env:API_BASE_URL = "http://localhost:8010"   # PowerShell
+export API_BASE_URL=http://localhost:8010     # Git Bash</code></pre>
+          <p>To find what's actually holding a port before changing anything: <code>netstat -ano | findstr :8000</code>, then <code>tasklist /FI "PID eq &lt;pid&gt;"</code> to identify it.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <div class="q"><span class="marker">Q6</span> <code>/predict</code> or <code>/insights</code> returns <code>{"detail":[{"type":"missing", ...}]}</code></div>
+        <pre class="err">{"detail":[{"type":"missing","loc":["body","locality"],
+"msg":"Field required", ...}]}</pre>
+        <div class="a">
+          <p><strong>Cause:</strong> this is not a bug — it's FastAPI/Pydantic validating the request body and rejecting it because a required field (here, <code>locality</code>) was left out. See <a href="#a-predict">§04</a> for the full required-field list.</p>
+          <p><strong>Fix:</strong> include every field from the schema. The fastest way to get a correct example body is <code>/docs</code>, which lets you fill and send a real request from the browser.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <div class="q"><span class="marker">Q7</span> <code>GET /health</code> or <code>/docs</code> returns <code>{"detail":"Not Found"}</code> even though the server "started"</div>
+        <div class="a">
+          <p><strong>Cause:</strong> the request reached a <em>different</em> server already listening on that port — not this app. Two servers cannot share one port, so whichever bound it first answers, and it has no route matching this app's paths.</p>
+          <p><strong>Fix:</strong> confirm which process actually owns the port (<code>Q5</code>'s commands), and run this app on a port nothing else holds.</p>
+        </div>
+      </div>
+
+      <div class="qa">
+        <div class="q"><span class="marker">Q8</span> The Streamlit page stays blank / shows "Running…" for a long time on first load</div>
+        <div class="a">
+          <p><strong>Cause:</strong> not an error — the first run compiles and caches the page, and matplotlib's font cache builds on first import. Subsequent loads are fast.</p>
+          <p><strong>Fix:</strong> wait roughly ten seconds on the very first launch after a fresh install. If it never resolves, check the terminal running Streamlit for a Python traceback.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 ROADMAP -->
+    <section id="roadmap">
+      <span class="sec-num">10</span>
+      <h2>Where this goes next</h2>
+      <div class="grid cols-3">
+        <div class="card"><h4>Real listings data</h4><p>Swap the synthetic CSV for scraped or licensed transaction data — same column contract, no code changes.</p></div>
+        <div class="card"><h4>Chat-based follow-ups</h4><p>Let the insight endpoint hold a conversation — "what if I add a parking spot?" — instead of one-shot text.</p></div>
+        <div class="card"><h4>Confidence intervals</h4><p>Quantile regression or a prediction-interval wrapper so the UI shows a price range, not a single number.</p></div>
+      </div>
+    </section>
+
+    <div class="colophon">
+      <span>AI Real Estate Advisor — Project Handbook</span>
+      <span>Verified locally · 2026-09-15</span>
+    </div>
+  </main>
+</div>

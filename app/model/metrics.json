@@ -1,0 +1,18 @@
+{
+  "selected_model": "gradient_boosting",
+  "cv_results": {
+    "random_forest": {
+      "mean_r2": 0.9481907794891924,
+      "std_r2": 0.004107918509954782
+    },
+    "gradient_boosting": {
+      "mean_r2": 0.9542125389092024,
+      "std_r2": 0.0036436995828886174
+    }
+  },
+  "test_mae": 1468817.121859969,
+  "test_rmse": 2064111.2646646071,
+  "test_r2": 0.9511379308235053,
+  "n_train": 3200,
+  "n_test": 800
+}
