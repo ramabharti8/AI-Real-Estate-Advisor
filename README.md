@@ -115,9 +115,6 @@ Trained on a synthetic 4,000-row dataset spanning 7 Indian cities with engineere
 ## Deployment
 See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for deploying the backend to Render/Railway and the frontend to Vercel/Netlify, plus a full Google Cloud Platform walkthrough in [`docs/handbook.html`](docs/handbook.html).
 
-## Screenshots
-_(placeholder — add UI screenshots here once deployed, e.g. `docs/screenshots/form.png`, `docs/screenshots/prediction.png`)_
-
 ## Learning Journey
 This project is part of my journey to transition into Machine Learning and Generative AI by building real-world projects step by step.
 
