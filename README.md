@@ -1,12 +1,71 @@
 # AI Real Estate Advisor
 
-## Overview
-AI Real Estate Advisor is an end-to-end Machine Learning + Generative AI project that predicts Indian residential property prices, generates a natural-language investment insight for each prediction, and answers questions over real-estate documents via retrieval-augmented generation (RAG). It ships as two deployable services: a FastAPI backend (model serving + RAG) and a React (Vite + TypeScript) frontend.
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-1.5-F7931E?logo=scikitlearn&logoColor=white)
+![LangChain](https://img.shields.io/badge/LangChain-RAG-1C3C3C)
+![ChromaDB](https://img.shields.io/badge/ChromaDB-vector%20store-FF6B6B)
+![React](https://img.shields.io/badge/React-TypeScript-61DAFB?logo=react&logoColor=black)
+![Tests](https://img.shields.io/badge/tests-11%20pytest-brightgreen)
 
-## Problem Statement
-Estimating the fair price of a property is challenging due to multiple influencing factors such as location, size, amenities, and market trends. Buyers and investors often lack accurate price estimation, data-driven insights, and clear investment guidance. This project addresses that with a regression model plus an LLM-generated explanation layer.
+An AI assistant for Indian home buyers and investors. It does three things:
 
-## System Workflow
+1. **Estimates a fair price** for a property with a machine-learning model.
+2. **Explains that price** in plain language with an LLM.
+3. **Answers questions from property documents** (sale agreements, society rules, legal checklists,
+   locality guides), using retrieval-augmented generation (RAG) with the source shown.
+
+It also includes market insights by city and an EMI / home-loan calculator. Every AI feature has a
+fallback, so the whole app runs **without a paid API key**.
+
+## Contents
+
+- [Why AI for real estate?](#why-ai-for-real-estate)
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Model results](#model-results)
+- [Tech stack](#tech-stack)
+- [Project structure](#project-structure)
+- [Getting started](#getting-started)
+- [API overview](#api-overview)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Limitations and roadmap](#limitations-and-roadmap)
+
+## Why AI for real estate?
+
+Brokers and property portals already exist, but they leave real gaps for a buyer:
+
+| Today | The gap | What this project adds |
+|---|---|---|
+| A broker estimates price from experience | Estimates vary, and advice can be biased by commission | A consistent, data-driven estimate that weighs 9 factors together, in seconds |
+| Portals filter listings by price and BHK | Filters show listings; they don't say whether a price is fair | A fair-price estimate plus an explanation of what drives it |
+| Buyers read 40-page agreements and brochures themselves | Legal language, little time, important clauses get missed | Ask "What are the maintenance charges?" and get an answer from the document, with its source |
+| Advice is available only during office hours | Questions come up at night and on weekends | Instant answers, any time |
+
+**AI's role is to assist the advisor, not replace them.** The system handles the data-heavy,
+repetitive and document-reading work; people handle negotiation, site visits and the final legal
+decision. Prompts explicitly avoid guarantees and legal or financial advice.
+
+## Features
+
+| Tab | What it does |
+|---|---|
+| **Valuation** | Enter area, bedrooms, bathrooms, age, parking, amenities score, city, locality and furnishing; get a predicted price (₹ Lakh / Cr) and an AI-written insight |
+| **Market Insights** | Average price by city and median price by furnishing type |
+| **Financing** | EMI, total interest, down payment and total cost for a home loan |
+| **History** | Valuations from the current session |
+| **Documents** | Chat with indexed real-estate documents, or upload your own PDF / TXT / MD files |
+
+Other highlights:
+- A scikit-learn pipeline keeps preprocessing identical at training and prediction time.
+- Model selection by 5-fold cross-validation (Random Forest vs Gradient Boosting).
+- Pydantic validation on every request (for example, area must be 100–20,000 sq ft).
+- Graceful degradation: local embeddings, template insights and excerpt answers when no LLM key is set.
+  Responses say whether they came from the `llm` or a `template`.
+- Re-uploading a document replaces its old chunks instead of duplicating them.
+
+## How it works
 
 ```mermaid
 flowchart LR
@@ -14,109 +73,164 @@ flowchart LR
     B -- loads --> C[(model.joblib\nsklearn pipeline)]
     B -- price --> A
     A -- prediction + inputs --> D[FastAPI /insights]
-    D -- has OPENAI_API_KEY? --> E[OpenAI-compatible LLM]
-    D -- no key --> F[Template explanation]
-    E --> A
-    F --> A
+    D -- OPENAI_API_KEY set --> E[LLM gpt-4o-mini]
+    D -- no key --> F[Template insight]
     A -- question --> G[FastAPI /documents/chat]
-    G -- retrieves --> H[(ChromaDB\nvector store)]
-    G -- has OPENAI_API_KEY? --> E
-    G -- no key --> I[Retrieved excerpt]
-    I --> A
+    G -- top-4 chunks --> H[(ChromaDB)]
+    G -- OPENAI_API_KEY set --> E
+    G -- no key --> I[Most relevant excerpt]
 ```
 
-## Features (Implemented)
-- Synthetic but realistically-correlated Indian housing dataset generator (`src/generate_data.py`)
-- Feature engineering + preprocessing pipeline (`src/preprocessing.py`): scaling for numeric features, one-hot encoding for categoricals
-- Model training with candidate comparison via 5-fold CV — RandomForest vs GradientBoosting, best picked automatically (`src/train.py`)
-- FastAPI backend with `/predict` and `/insights` endpoints, Pydantic request/response validation (`app/`)
-- LLM-backed insight generation (OpenAI-compatible client) with a graceful template fallback when `OPENAI_API_KEY` is unset
-- Document Q&A (RAG) over sample and user-uploaded real-estate documents using LangChain + ChromaDB, with a free local-embedding fallback (`sentence-transformers`) and a retrieved-excerpt fallback when no LLM key is set (`app/rag.py`, `app/rag_common.py`, `src/ingest_documents.py`)
-- React (Vite + TypeScript) frontend: Valuation form + chart, Market Insights, Financing/EMI calculator, session History, and a Documents (RAG chat) tab (`frontend/`)
-- Pytest suite covering the ML pipeline, the core API, and the RAG feature (`tests/`)
-- Deploy-ready config for Render/Railway (backend)
+**Valuation.** `StandardScaler` on numeric features (area, bedrooms, bathrooms, age, parking,
+amenities) and `OneHotEncoder(handle_unknown="ignore")` on city, locality and furnishing, followed by
+the model, all in one pipeline. An unseen locality therefore doesn't crash the API.
 
-## Tech Stack
+**RAG pipeline.**
+1. *Ingest*: load PDF (`pypdf`), TXT or MD → split into 800-character chunks with 120-character overlap
+   (recursive splitter: paragraph → line → sentence) → embed → store in ChromaDB with filename metadata.
+2. *Embeddings*: OpenAI `text-embedding-3-small` if a key is set, otherwise the free local
+   `sentence-transformers/all-MiniLM-L6-v2`.
+3. *Answer*: embed the question → retrieve the 4 most similar chunks → `gpt-4o-mini` at temperature
+   0.3 with a system prompt to answer **only from the given context** and to say so when the answer
+   isn't there → return the answer and the source filenames.
 
-**Core**: Python, Pandas, NumPy, Scikit-learn, Joblib
-**Visualization**: Matplotlib (backend charts), Recharts (frontend charts)
-**Backend**: FastAPI, Pydantic, Uvicorn
-**Frontend**: React, TypeScript, Vite
-**GenAI**: OpenAI-compatible chat completion API; LangChain + ChromaDB for RAG; sentence-transformers for zero-key local embeddings
+**Guarding against hallucination:** the model sees only retrieved context, the prompt forbids guessing,
+temperature is low, sources are shown, and an empty retrieval returns "not found" instead of an answer.
 
-## Project Structure
+## Model results
+
+From `app/model/metrics.json`:
+
+| Model | 5-fold CV R² | |
+|---|---|---|
+| **Gradient Boosting** (selected) | **0.954 ± 0.004** | Test R² 0.951 · MAE ≈ ₹14.7 lakh · RMSE ≈ ₹20.6 lakh |
+| Random Forest | 0.948 ± 0.004 | |
+
+Training uses 3,200 rows and testing uses 800.
+
+> **Important:** these scores are on a **synthetic** dataset (`src/generate_data.py`): 4,000 listings
+> across 7 cities and 35 localities, with realistic relationships between price, location, area, age,
+> amenities, furnishing and parking. The high R² shows the pipeline learns those relationships; it is
+> **not** a claim of real-market accuracy. To train on real data, `src/prepare_real_data.py` converts
+> the public Kaggle *Bengaluru House Price Data* into the same schema and logs every value it imputes.
+> Expect lower accuracy on real data.
+
+## Tech stack
+
+| Layer | Tools |
+|---|---|
+| ML | Python, pandas, NumPy, scikit-learn, joblib |
+| Backend | FastAPI, Pydantic, Uvicorn |
+| GenAI / RAG | OpenAI API (`gpt-4o-mini`, `text-embedding-3-small`), LangChain, ChromaDB, sentence-transformers, pypdf |
+| Frontend | React, TypeScript, Vite, Recharts |
+| Quality & deploy | pytest, Render (backend), Vercel / Netlify (frontend) |
+
+## Project structure
 
 ```
-ai-real-estate-advisor/
-├── data/                  housing_data.csv (synthetic, generated); documents/ (sample RAG corpus)
-├── notebooks/             exploratory notebooks (optional, ad hoc)
-├── src/                   generate_data.py, preprocessing.py, train.py, ingest_documents.py
-├── app/                   main.py (FastAPI), schemas.py, insights.py, rag.py, rag_common.py, model/, vectorstore/ (gitignored)
-├── frontend/              Vite + React + TypeScript app (Valuation, Market Insights, Financing, History, Documents tabs)
-├── tests/                 pytest suite (pipeline + API + RAG)
-├── docs/                  DEPLOYMENT.md
-├── render.yaml, Procfile, runtime.txt   deploy configs
-├── requirements.txt
-└── README.md
+AI-Real-Estate-Advisor/
+├── app/
+│   ├── main.py              # FastAPI: /predict, /insights, /market/*, health
+│   ├── rag.py               # /documents: list, upload, chat
+│   ├── rag_common.py        # embeddings, Chroma store, chunking, grounded answer
+│   ├── insights.py          # LLM insight with template fallback
+│   ├── schemas.py           # Pydantic request/response models
+│   └── model/               # model.joblib, metrics.json
+├── src/
+│   ├── generate_data.py     # synthetic Indian housing dataset
+│   ├── prepare_real_data.py # convert Kaggle Bengaluru data to this schema
+│   ├── preprocessing.py     # shared feature pipeline
+│   ├── train.py             # CV model selection + training
+│   └── ingest_documents.py  # index data/documents into ChromaDB
+├── data/
+│   ├── housing_data.csv
+│   └── documents/           # sample RAG corpus (brochure, legal checklist, locality guides, agreement)
+├── frontend/src/tabs/       # Valuation, MarketInsights, Financing, History, Documents
+├── tests/                   # pipeline, API and RAG tests
+├── docs/DEPLOYMENT.md
+└── render.yaml, Procfile, runtime.txt
 ```
 
-## Getting Started
+## Getting started
 
-### 1. Setup
+**1. Backend**
 ```bash
 python -m venv venv
-venv\Scripts\activate        # Windows
+venv\Scripts\activate              # Windows   (macOS/Linux: source venv/bin/activate)
+# CPU-only torch first, for local embeddings:
+pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
-copy .env.example .env       # then optionally add OPENAI_API_KEY
+copy .env.example .env             # optional: add OPENAI_API_KEY
 ```
 
-### 2. Generate data & train the model
+**2. Data and model**
 ```bash
-python src/generate_data.py   # writes data/housing_data.csv
-python src/train.py           # writes app/model/model.joblib + metrics.json
+python src/generate_data.py        # writes data/housing_data.csv
+python src/train.py                # writes app/model/model.joblib and metrics.json
+python src/ingest_documents.py     # indexes data/documents/ into ChromaDB
 ```
 
-### 3. Run the API
+**3. Run the API**
 ```bash
 uvicorn app.main:app --reload
 ```
-Docs at http://localhost:8000/docs — try `/predict`, `/insights`, `/documents`, `/documents/chat`.
+Interactive docs: http://localhost:8000/docs
 
-### 4. Ingest the sample documents (for the RAG / Documents feature)
-```bash
-python src/ingest_documents.py
-```
-Re-runnable any time; re-ingests each file in `data/documents/` into `app/vectorstore/chroma/` (gitignored). Uses `OPENAI_API_KEY` + `text-embedding-3-small` if set, otherwise a free local `sentence-transformers/all-MiniLM-L6-v2` model — no API key required either way.
-
-### 5. Run the frontend
+**4. Frontend**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Set `VITE_API_BASE_URL` (defaults to `http://localhost:8000`, see `frontend/.env.example`) if the backend runs elsewhere. Build for production with `npm run build` (outputs `frontend/dist/`).
+Set `VITE_API_BASE_URL` if the backend isn't on `http://localhost:8000`.
 
-### 6. Run tests
+**Example.** A 1,200 sq ft, 2BHK, 2-bath, 5-year-old semi-furnished flat in Kothrud, Pune, with 1 parking
+spot and amenities 6/10, gets a predicted price of about ₹95.8 lakh, plus an insight on price per sq ft
+and what to verify before buying.
+
+## API overview
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /predict` | Price estimate from property details |
+| `POST /insights` | Plain-language insight for a prediction (`source`: `llm` or `template`) |
+| `GET /market/summary` | Listings count, medians, average price by city, price by furnishing |
+| `GET /market/by-city/{city}` | Median price, price per sq ft and top locality for a city |
+| `GET /documents` | Indexed documents and their chunk counts |
+| `POST /documents/upload` | Index a PDF / TXT / MD file |
+| `POST /documents/chat` | Ask a question; returns the answer and source filenames |
+| `GET /health` | Service and model status |
+
+## Testing
+
 ```bash
 pytest -q
 ```
-
-## Example Use Case
-
-Input: Area 1200 sqft, Pune, Kothrud, 2BHK, 2 bath, 5 years old, semi-furnished, 1 parking, amenities 6/10
-
-Output: Predicted Price ≈ ₹95.8 Lakh (GradientBoostingRegressor)
-
-AI Insight (template mode, no API key): "This 2BHK in Kothrud, Pune is estimated at ₹85.0 Lakh (~₹7,083/sqft)... Buyers should independently verify recent local transactions and factor in maintenance costs before deciding."
-
-## Model Notes
-Trained on a synthetic 4,000-row dataset spanning 7 Indian cities with engineered correlations between area, bedrooms, amenities, age and price. Gradient Boosting was selected over Random Forest via 5-fold CV (R² ≈ 0.95 on held-out test data). Since the data is synthetic, absolute prices are illustrative, not real market figures — see `docs/DEPLOYMENT.md` for how to swap in a real dataset.
+11 tests cover the ML pipeline, the API endpoints and the RAG feature, including the fallback path,
+so the suite runs without a paid API key.
 
 ## Deployment
-See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for deploying the backend to Render/Railway and the frontend to Vercel/Netlify, plus a full Google Cloud Platform walkthrough in [`docs/handbook.html`](docs/handbook.html).
 
-## Learning Journey
-This project is part of my journey to transition into Machine Learning and Generative AI by building real-world projects step by step.
+The backend goes to Render via `render.yaml` (the build trains the model and ingests the sample
+documents). The frontend goes to Vercel or Netlify, with `VITE_API_BASE_URL` pointing at the backend.
+See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). Note: Render's free tier has an ephemeral disk, so
+uploaded documents are lost on restart unless you add a persistent disk or cloud storage.
 
-## Contributions
-This is a personal learning project, but suggestions and feedback are welcome.
+## Limitations and roadmap
+
+- **Real data:** train on real transaction data, and report MAE in lakhs and prediction intervals.
+- **Better features:** distance to metro, schools and offices; price per sq ft as the target.
+- **RAG evaluation:** a golden question set to measure retrieval hit rate and answer faithfulness.
+- **Security for production:** user authentication, restricted CORS, rate limiting on LLM endpoints,
+  and upload size limits.
+- **Documents:** OCR for scanned PDFs; Hindi and regional-language answers.
+- **Features:** side-by-side comparison of two properties.
+
+## Disclaimer
+
+Price estimates and document answers are informational only and are not financial or legal advice.
+Verify with recent local transactions and a qualified lawyer before buying.
+
+## Author
+
+**Rama Bharti** · [GitHub](https://github.com/ramabharti8) · [LinkedIn](https://linkedin.com/in/ramabharti)
